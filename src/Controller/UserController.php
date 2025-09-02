@@ -9,12 +9,12 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/user', name: 'user_')]
 final class UserController extends AbstractController
 {
-    #[Route('/detail/{id}', name: 'detail')]
+    #[Route('/detail/{id}', name: 'detail', requirements: ['id'=>'\d+'])]
     public function userDetail(int $id): Response
     {
     }
 
-    #[Route('/modify/{id}', name: 'modify')]
+    #[Route('/modify/{id}', name: 'modify', requirements: ['id'=>'\d+'])]
     public function userModify(int $id): Response
     {
     }

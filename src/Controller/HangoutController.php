@@ -19,27 +19,27 @@ final class HangoutController extends AbstractController
     {
     }
 
-    #[Route('/modify/{id}', name: 'modify')]
+    #[Route('/modify/{id}', name: 'modify', requirements: ['id'=>'\d+'])]
     public function modifyHangout(int $id): Response
     {
     }
 
-    #[Route('/delete/{id}', name: 'delete')]
+    #[Route('/delete/{id}', name: 'delete', requirements: ['id'=>'\d+'])]
     public function deleteHangout(int $id): Response
     {
     }
 
-    #[Route('/cancel/{id}', name: 'cancel')]
+    #[Route('/cancel/{id}', name: 'cancel', requirements: ['id'=>'\d+'])]
     public function cancelHangout(int $id): Response
     {
     }
 
-    #[Route('/subscribe/{id}', name: 'subscribe')]
+    #[Route('/subscribe/{id}', name: 'subscribe', requirements: ['id'=>'\d+'])]
     public function subscribeToHangout(): Response
     {
     }
 
-    #[Route('/unsubscribe/{id}', name: 'unsubscribe')]
+    #[Route('/unsubscribe/{id}', name: 'unsubscribe', requirements: ['id'=>'\d+'])]
     public function unsubscribeFromHangout(): Response
     {
     }
