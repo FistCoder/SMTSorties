@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\HangoutRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -9,9 +10,29 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/hangouts', name: 'hangout_')]
 final class HangoutController extends AbstractController
 {
+
+
+    public function __construct(private readonly HangoutRepository $hangoutRepository)
+    {
+    }
+
     #[Route('/', name: 'list')]
     public function listHangouts(): Response
     {
+    }
+
+    #[Route('/detail/{id}', name: 'detail', requirements: ['id'=>'\d+'])]
+    public function detailHangout(int $id): Response
+    {
+        $hangout = $this->hangoutRepository->find($id);
+
+        if (!$hangout) {
+            throw $this->createNotFoundException("La sortie n'existe pas.");
+        }
+
+        return $this->render('hangout/detail.html.twig', [
+            'hangout' => $hangout
+        ]);
     }
 
     #[Route('/add', name: 'add')]
