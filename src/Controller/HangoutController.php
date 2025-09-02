@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Hangout;
+use App\Form\HangoutType;
 use App\Repository\HangoutRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,6 +40,15 @@ final class HangoutController extends AbstractController
     #[Route('/add', name: 'add')]
     public function addHangout(): Response
     {
+        $hangout = new Hangout();
+        $form = $this->createForm(HangoutType::class, $hangout);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+//            TODO
+        }
+        return $this->render('hangout/add.html.twig', [
+            'form' => $form
+        ]);
     }
 
     #[Route('/modify/{id}', name: 'modify', requirements: ['id'=>'\d+'])]
