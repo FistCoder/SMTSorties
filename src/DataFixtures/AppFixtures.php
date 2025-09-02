@@ -11,10 +11,17 @@ use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Constraints\Timezone;
 
 class AppFixtures extends Fixture
 {
+
+
+    public function __construct(private UserPasswordHasherInterface $userPasswordHasher)
+    {
+    }
+
     public function load(ObjectManager $manager): void
     {
 
@@ -39,7 +46,7 @@ class AppFixtures extends Fixture
         $user->setFirstname('user')
             ->setLastname('user')
             ->setEmail('user@user.com')
-            ->setPassword('user')
+            ->setPassword($this->userPasswordHasher->hashPassword($user, 'user'))
             ->setPhone('0123456789')
             ->setActive(true)
             ->setCampus($faker->randomElement($campuses));
@@ -51,7 +58,7 @@ class AppFixtures extends Fixture
             $fakeUser->setFirstname($faker->firstName)
                 ->setLastname($faker->lastName)
                 ->setEmail($faker->email)
-                ->setPassword($faker->password())
+                ->setPassword($this->userPasswordHasher->hashPassword($user, $faker->password))
                 ->setPhone($faker->phoneNumber)
                 ->setActive($faker->randomElement([true, false]))
                 ->setCampus($faker->randomElement($campuses));
@@ -117,8 +124,8 @@ class AppFixtures extends Fixture
                 ->addSubscriberLst($faker->randomElement($users))
                 ->addSubscriberLst($faker->randomElement($users));
 
-                $hangout->setLastSubmitDate($faker->dateTimeBetween($hangout->getStartingDateTime(), '+2 months'));
-                $manager->persist($hangout);
+            $hangout->setLastSubmitDate($faker->dateTimeBetween($hangout->getStartingDateTime(), '+2 months'));
+            $manager->persist($hangout);
         }
         $manager->flush();
     }
