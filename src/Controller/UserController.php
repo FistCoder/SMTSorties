@@ -19,7 +19,8 @@ final class UserController extends AbstractController
     public function __construct(private UserPasswordHasherInterface $userPasswordHasher)
     {
     }
-    #[Route('/detail/{id}', name: 'detail')]
+    #[Route('/detail/{id}', name: 'detail', requirements: ['id'=>'\d+'])]
+
     public function userDetail(int $id): Response
     {
     }
@@ -30,6 +31,7 @@ final class UserController extends AbstractController
         EntityManagerInterface $entityManager,
         UserRepository $userRepository
     ): Response
+
     {
         $tempUser = $this->getUser();
 
