@@ -6,7 +6,9 @@ use App\Repository\HangoutRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: HangoutRepository::class)]
 class Hangout
@@ -17,25 +19,65 @@ class Hangout
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Hangout name is required")]
+    #[Assert\Length(
+        min: 3,
+        max: 255,
+        minMessage: "Hangout name must be at least {{ limit }} characters long",
+        maxMessage: "Hangout name cannot be longer than {{ limit }} characters"
+    )]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-Z0-9\s\-_.,!?()]+$/',
+        message: "Hangout name contains invalid characters"
+    )]
     private ?string $name = null;
 
     #[ORM\Column]
+    #[Assert\NotNull(message: "Starting date and time is required")]
+    #[Assert\GreaterThan(
+        value: "now",
+        message: "Starting date and time must be in the future"
+    )]
     private ?\DateTime $startingDateTime = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE)]
+    #[Assert\NotNull(message: "Duration is required")]
     private ?\DateTime $length = null;
 
     #[ORM\Column]
+    #[Assert\NotNull(message: "Last submit date is required")]
+    #[Assert\LessThan(
+        propertyPath: "startingDateTime",
+        message: "Last submit date must be before the hangout starts"
+    )]
+    #[Assert\GreaterThan(
+        value: "now",
+        message: "Last submit date must be in the future"
+    )]
     private ?\DateTime $lastSubmitDate = null;
 
     #[ORM\Column]
+    #[Assert\NotNull(message: "Maximum number of participants is required")]
+    #[Assert\Range(
+        notInRangeMessage: "Maximum participants must be between {{ min }} and {{ max }}",
+        min: 2,
+        max: 100
+    )]
     private ?int $maxParticipant = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: "Description is required")]
+    #[Assert\Length(
+        min: 10,
+        max: 2000,
+        minMessage: "Description must be at least {{ limit }} characters long",
+        maxMessage: "Description cannot be longer than {{ limit }} characters"
+    )]
     private ?string $detail = null;
 
     #[ORM\ManyToOne(inversedBy: 'hangoutLst')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: "Location is required")]
     private ?Location $location = null;
 
     #[ORM\ManyToOne]
@@ -55,6 +97,55 @@ class Hangout
     #[ORM\ManyToOne(inversedBy: 'organizedHangoutLst')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $organizer = null;
+
+    // You might also want to add a custom validation method for complex business rules
+    #[Assert\Callback]
+    public function validate(ExecutionContextInterface $context): void
+    {
+        // Ensure lastSubmitDate is at least 1 hour before startingDateTime
+        if ($this->lastSubmitDate && $this->startingDateTime) {
+            $interval = $this->startingDateTime->getTimestamp() - $this->lastSubmitDate->getTimestamp();
+            if ($interval < 3600) { // Less than 1 hour
+                $context->buildViolation('Last submit date must be at least 1 hour before the hangout starts')
+                    ->atPath('lastSubmitDate')
+                    ->addViolation();
+            }
+        }
+
+        // Ensure organizer is not already in the subscriber list
+        if ($this->organizer && $this->subscriberLst->contains($this->organizer)) {
+            $context->buildViolation('The organizer cannot be a subscriber')
+                ->atPath('subscriberLst')
+                ->addViolation();
+        }
+
+        // Validate subscriber count against maxParticipant
+        if ($this->maxParticipant && $this->subscriberLst->count() > $this->maxParticipant) {
+            $context->buildViolation('Cannot have more subscribers than the maximum allowed participants ({{ limit }})')
+                ->setParameter('{{ limit }}', (string) $this->maxParticipant)
+                ->atPath('subscriberLst')
+                ->addViolation();
+        }
+
+        // Validate length duration (TimeType creates DateTime objects with today's date)
+        if ($this->length) {
+            $hours = (int) $this->length->format('H');
+            $minutes = (int) $this->length->format('i');
+            $totalMinutes = $hours * 60 + $minutes;
+
+            if ($totalMinutes < 30) {
+                $context->buildViolation('Hangout must be at least 30 minutes long')
+                    ->atPath('length')
+                    ->addViolation();
+            }
+
+            if ($totalMinutes > 720) { // 12 hours = 720 minutes
+                $context->buildViolation('Hangout cannot be longer than 12 hours')
+                    ->atPath('length')
+                    ->addViolation();
+            }
+        }
+    }
 
     public function __construct()
     {

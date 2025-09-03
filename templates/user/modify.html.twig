@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+{% embed 'views/form/user-form.html.twig' %}
+    {% block formTitle %} Mon profil {% endblock %}
+    {% block buttonLabel %} Enregistrer {% endblock %}
+{% endembed %}
+    <input type="button" value="Annuler" onclick="location.href='modify'"/>
+
+{% endblock %}
+
