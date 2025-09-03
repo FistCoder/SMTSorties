@@ -7,7 +7,7 @@ use App\Entity\User;
 use App\Form\FilterHangoutType;
 use App\Form\HangoutType;
 use App\Repository\HangoutRepository;
-use App\Repository\StateRepository
+use App\Repository\StateRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,26 +19,27 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 final class HangoutController extends AbstractController
 {
 
-public function __construct(
-        private readonly StateRepository $stateRepository,
-        private readonly HangoutRepository $hangoutRepository,
+    public function __construct(
+        private readonly StateRepository        $stateRepository,
+        private readonly HangoutRepository      $hangoutRepository,
         private readonly EntityManagerInterface $entityManager,
-        private readonly ValidatorInterface $validator)
+        private readonly ValidatorInterface     $validator)
     {
     }
-    
+
 
     #[Route('/', name: 'list')]
     public function listHangouts(Request $request): Response
+    {
 
-$user = $this->getUser();
+        $user = $this->getUser();
 
         if (!$user) {
             // Gère le cas utilisateur non connecté (redirige, exception, etc.)
             throw $this->createAccessDeniedException('Vous devez être connecté');
         }
 
-        //creation du form
+//creation du form
         $filterForm = $this->createForm(FilterHangoutType::class);
         $filterForm->handleRequest($request);
 
@@ -57,8 +58,8 @@ $user = $this->getUser();
 
         }
 
-        // Récupération des sorties filtrées
-        $hangouts = $this->hangoutRepository->findFilteredEvent($user, $filters );
+// Récupération des sorties filtrées
+        $hangouts = $this->hangoutRepository->findFilteredEvent($user, $filters);
 
         dump($filters, $hangouts);
 
@@ -66,14 +67,12 @@ $user = $this->getUser();
             'hangouts' => $hangouts,
             'filterForm' => $filterForm,
             'filtersApplied' => $filterForm->isSubmitted(),
-            ]);
+        ]);
     }
 
-    
 
-    
-
-    #[Route('/detail/{id}', name: 'detail', requirements: ['id' => '\d+'])]
+    #[
+        Route('/detail/{id}', name: 'detail', requirements: ['id' => '\d+'])]
     public function detailHangout(int $id): Response
     {
         $hangout = $this->hangoutRepository->find($id);
@@ -132,7 +131,7 @@ $user = $this->getUser();
     public function deleteHangout(int $id): Response
     {
     }
-     
+
     #[Route('/cancel/{id}', name: 'cancel', requirements: ['id' => '\d+'])]
     public function cancelHangout(int $id): Response
     {
@@ -152,11 +151,11 @@ $user = $this->getUser();
         }
 
         if ($hangout->getState()->getLabel() == "OPEN") {
-        $hangout->addSubscriberLst($user);
+            $hangout->addSubscriberLst($user);
         }
 
         if ($hangout->getSubscriberLst()->contains($user)) {
-            $this->addFlash('error', $user->getFirstname(). " is already subscribed to this hangout. That's you");
+            $this->addFlash('error', $user->getFirstname() . " is already subscribed to this hangout. That's you");
             return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
         }
 
