@@ -64,11 +64,11 @@ final class HangoutController extends AbstractController
             ]);
     }
 
-//    #[Route('/add', name: 'add')]
-//    public function addHangout(): Response
-//    {
-//    }
-//
+    #[Route('/add', name: 'add')]
+    public function addHangout(): Response
+    {
+    }
+
 //    #[Route('/modify/{id}', name: 'modify', requirements: ['id'=>'\d+'])]
 //    public function modifyHangout(int $id): Response
 //    {
@@ -84,13 +84,13 @@ final class HangoutController extends AbstractController
 //    {
 //    }
 //
-//    #[Route('/subscribe/{id}', name: 'subscribe', requirements: ['id'=>'\d+'])]
-//    public function subscribeToHangout(): Response
-//    {
-//    }
-//
-//    #[Route('/unsubscribe/{id}', name: 'unsubscribe', requirements: ['id'=>'\d+'])]
-//    public function unsubscribeFromHangout(): Response
-//    {
-//    }
+    #[Route('/subscribe/{id}', name: 'subscribe', requirements: ['id'=>'\d+'])]
+    public function subscribeToHangout(): Response
+    {
+    }
+
+    #[Route('/unsubscribe/{id}', name: 'unsubscribe', requirements: ['id'=>'\d+'])]
+    public function unsubscribeFromHangout(): Response
+    {
+    }
 }
