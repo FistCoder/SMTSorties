@@ -54,6 +54,18 @@ class AppFixtures extends Fixture
 
         $manager->persist($user);
 
+        $admin = new User();
+        $admin->setUsername('admin')
+            ->setFirstname('admin')
+            ->setLastname('admin')
+            ->setEmail('admin@admin.com')
+            ->setPassword($this->userPasswordHasher->hashPassword($user, 'admin'))
+            ->setPhone('0123456789')
+            ->setActive(true)
+            ->setCampus($faker->randomElement($campuses))
+            ->setRoles(['ROLE_ADMIN']);
+        $manager->persist($admin);
+
         for ($i = 0; $i < 10; $i++) {
             $fakeUser = new User();
             $fakeUser->setUsername('user' . $i)

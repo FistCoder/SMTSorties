@@ -102,7 +102,7 @@ class Hangout
     #[Assert\Callback]
     public function validate(ExecutionContextInterface $context): void
     {
-        // Example: Ensure lastSubmitDate is at least 1 hour before startingDateTime
+        // Ensure lastSubmitDate is at least 1 hour before startingDateTime
         if ($this->lastSubmitDate && $this->startingDateTime) {
             $interval = $this->startingDateTime->getTimestamp() - $this->lastSubmitDate->getTimestamp();
             if ($interval < 3600) { // Less than 1 hour
@@ -112,7 +112,7 @@ class Hangout
             }
         }
 
-        // Example: Ensure organizer is not already in the subscriber list
+        // Ensure organizer is not already in the subscriber list
         if ($this->organizer && $this->subscriberLst->contains($this->organizer)) {
             $context->buildViolation('The organizer cannot be a subscriber')
                 ->atPath('subscriberLst')
