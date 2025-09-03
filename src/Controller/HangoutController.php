@@ -7,19 +7,23 @@ use App\Entity\User;
 use App\Form\HangoutType;
 use App\Repository\HangoutRepository;
 use App\Repository\StateRepository;
-use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/hangouts', name: 'hangout_')]
 final class HangoutController extends AbstractController
 {
 
 
-    public function __construct(private readonly HangoutRepository $hangoutRepository, private readonly EntityManagerInterface $entityManager)
+    public function __construct(
+        private readonly StateRepository $stateRepository,
+        private readonly HangoutRepository $hangoutRepository,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly ValidatorInterface $validator)
     {
     }
 
@@ -43,7 +47,7 @@ final class HangoutController extends AbstractController
     }
 
     #[Route('/add', name: 'add')]
-    public function addHangout(Request $request, StateRepository $stateRepository): Response
+    public function addHangout(Request $request): Response
     {
         /**
          * @var User $user
@@ -59,9 +63,9 @@ final class HangoutController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             ;
             if ($form->get('save')->isClicked()) {
-                $hangout->setState($stateRepository->findOneBy(['label' => 'CREATE']));
+                $hangout->setState($this->stateRepository->findOneBy(['label' => 'CREATE']));
             } elseif ($form->get('publish')->isClicked()) {
-                $hangout->setState($stateRepository->findOneBy(['label' => 'OPEN']));
+                $hangout->setState($this->stateRepository->findOneBy(['label' => 'OPEN']));
             }
             $hangout->setCampus($user->getCampus());
             $hangout->setOrganizer($user);
@@ -94,8 +98,44 @@ final class HangoutController extends AbstractController
     }
 
     #[Route('/subscribe/{id}', name: 'subscribe', requirements: ['id' => '\d+'])]
-    public function subscribeToHangout(): Response
+    public function subscribeToHangout(int $id): Response
     {
+        $hangout = $this->hangoutRepository->find($id);
+        /**
+         * @var User $user
+         */
+        $user = $this->getUser();
+
+        if (!$hangout) {
+            throw $this->createNotFoundException("La sortie n'existe pas.");
+        }
+
+        if ($hangout->getState()->getLabel() == "OPEN") {
+        $hangout->addSubscriberLst($user);
+        }
+
+        if ($hangout->getSubscriberLst()->contains($user)) {
+            $this->addFlash('error', $user->getFirstname(). " is already subscribed to this hangout. That's you");
+            return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
+        }
+
+
+        $violations = $this->validator->validate($hangout);
+        if (count($violations) > 0) {
+            foreach ($violations as $violation) {
+                $this->addFlash('danger', $violation->getMessage());
+            }
+        } else {
+            $this->entityManager->persist($hangout);
+            $this->entityManager->flush();
+        }
+
+
+        if ($hangout->getSubscriberLst()->count() == $hangout->getMaxParticipant()) {
+            $hangout->setState($this->stateRepository->findOneBy(['label' => 'CLOSED']));
+        }
+
+        return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
     }
 
     #[Route('/unsubscribe/{id}', name: 'unsubscribe', requirements: ['id' => '\d+'])]
