@@ -3,9 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\Hangout;
+use App\Entity\User;
 use App\Form\HangoutType;
 use App\Repository\HangoutRepository;
+use App\Repository\StateRepository;
+use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -14,7 +19,7 @@ final class HangoutController extends AbstractController
 {
 
 
-    public function __construct(private readonly HangoutRepository $hangoutRepository)
+    public function __construct(private readonly HangoutRepository $hangoutRepository, private readonly EntityManagerInterface $entityManager)
     {
     }
 
@@ -23,7 +28,7 @@ final class HangoutController extends AbstractController
     {
     }
 
-    #[Route('/detail/{id}', name: 'detail', requirements: ['id'=>'\d+'])]
+    #[Route('/detail/{id}', name: 'detail', requirements: ['id' => '\d+'])]
     public function detailHangout(int $id): Response
     {
         $hangout = $this->hangoutRepository->find($id);
@@ -38,40 +43,62 @@ final class HangoutController extends AbstractController
     }
 
     #[Route('/add', name: 'add')]
-    public function addHangout(): Response
+    public function addHangout(Request $request, StateRepository $stateRepository): Response
     {
+        /**
+         * @var User $user
+         */
+        $user = $this->getUser();
+
+
         $hangout = new Hangout();
         $form = $this->createForm(HangoutType::class, $hangout);
 
+        $form->handleRequest($request);
+
         if ($form->isSubmitted() && $form->isValid()) {
-//            TODO
+            ;
+            if ($form->get('save')->isClicked()) {
+                $hangout->setState($stateRepository->findOneBy(['label' => 'CREATE']));
+            } elseif ($form->get('publish')->isClicked()) {
+                $hangout->setState($stateRepository->findOneBy(['label' => 'OPEN']));
+            }
+            $hangout->setCampus($user->getCampus());
+            $hangout->setOrganizer($user);
+            dump($hangout);
+            $this->entityManager->persist($hangout);
+            $this->entityManager->flush();
+            $this->addFlash("success", "Sortie " . $hangout->getName() . "ajoutée");
+
+            return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
         }
+
         return $this->render('hangout/add.html.twig', [
             'form' => $form
         ]);
     }
 
-    #[Route('/modify/{id}', name: 'modify', requirements: ['id'=>'\d+'])]
+    #[Route('/modify/{id}', name: 'modify', requirements: ['id' => '\d+'])]
     public function modifyHangout(int $id): Response
     {
     }
 
-    #[Route('/delete/{id}', name: 'delete', requirements: ['id'=>'\d+'])]
+    #[Route('/delete/{id}', name: 'delete', requirements: ['id' => '\d+'])]
     public function deleteHangout(int $id): Response
     {
     }
 
-    #[Route('/cancel/{id}', name: 'cancel', requirements: ['id'=>'\d+'])]
+    #[Route('/cancel/{id}', name: 'cancel', requirements: ['id' => '\d+'])]
     public function cancelHangout(int $id): Response
     {
     }
 
-    #[Route('/subscribe/{id}', name: 'subscribe', requirements: ['id'=>'\d+'])]
+    #[Route('/subscribe/{id}', name: 'subscribe', requirements: ['id' => '\d+'])]
     public function subscribeToHangout(): Response
     {
     }
 
-    #[Route('/unsubscribe/{id}', name: 'unsubscribe', requirements: ['id'=>'\d+'])]
+    #[Route('/unsubscribe/{id}', name: 'unsubscribe', requirements: ['id' => '\d+'])]
     public function unsubscribeFromHangout(): Response
     {
     }
