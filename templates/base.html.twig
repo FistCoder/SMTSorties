@@ -16,6 +16,24 @@
 {#        {% endblock %}#}
     </head>
     <body>
-        {% block body %}{% endblock %}
+    <div class="container">
+        <header>
+            <div class="header-div">
+                <img src="{{ asset('img/logoMST.png') }}" alt="logo" width="100px">
+            </div>
+                {% include 'views/menu/nav.html.twig' %}
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="flash flash-{{ label }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+        </header>
+        <main>{% block body %}{% endblock %}</main>
+        <footer>
+
+        </footer>
+    </div>
     </body>
 </html>

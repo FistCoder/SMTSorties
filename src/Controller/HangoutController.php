@@ -4,9 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Hangout;
 use App\Entity\User;
-use App\Form\FilterHangoutType;
-use App\Repository\CampusRepository;
+use App\Form\HangoutType;
 use App\Repository\HangoutRepository;
+use App\Repository\StateRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,74 +24,82 @@ final class HangoutController extends AbstractController
     }
 
     #[Route('/', name: 'list')]
-    public function listHangouts(Request $request, CampusRepository $campusRepository): Response
+    public function listHangouts(): Response
     {
-        //creation du form
-        $filterForm = $this->createForm(FilterHangoutType::class);
-        $filterForm->handleRequest($request);
-
-        $isOrganizer = $filterForm->get('isOrganizer')->getData();
-        $isRegistered = $filterForm->get('isRegistered')->getData();
-        $isNotRegistered = $filterForm->get('isNotRegistered')->getData();
-        $isPast = $filterForm->get('isPast')->getData();
-
-        $filters['isOrganizer'] = $isOrganizer;
-        $filters['isRegistered'] = $isRegistered;
-        $filters['isNotRegistered'] = $isNotRegistered;
-        $filters['isPast'] = $isPast;
-
-        if ($filterForm->isSubmitted() && $filterForm->isValid()) {
-            $filters = $filterForm->getData();
-
-        } else {
-            $filters = [];
-        }
-
-
-        //Appel du repo et transmition de l'utilisateur connecter
-        $user = $this->getUser();
-
-        if (!$user) {
-            // Gère le cas utilisateur non connecté (redirige, exception, etc.)
-            throw $this->createAccessDeniedException('Vous devez être connecté');
-        }
-        $hangouts = $this->hangoutRepository->findFilteredEvent($user, $filters);
-
-
-        dump($filters, $hangouts);
-
-        return $this->render('hangouts/list.html.twig',
-            ['hangouts' => $hangouts,
-                'filterForm' => $filterForm]);
     }
 
-//    #[Route('/add', name: 'add')]
-//    public function addHangout(): Response
-//    {
-//    }
-//
-//    #[Route('/modify/{id}', name: 'modify', requirements: ['id'=>'\d+'])]
-//    public function modifyHangout(int $id): Response
-//    {
-//    }
-//
-//    #[Route('/delete/{id}', name: 'delete', requirements: ['id'=>'\d+'])]
-//    public function deleteHangout(int $id): Response
-//    {
-//    }
-//
-//    #[Route('/cancel/{id}', name: 'cancel', requirements: ['id'=>'\d+'])]
-//    public function cancelHangout(int $id): Response
-//    {
-//    }
-//
-//    #[Route('/subscribe/{id}', name: 'subscribe', requirements: ['id'=>'\d+'])]
-//    public function subscribeToHangout(): Response
-//    {
-//    }
-//
-//    #[Route('/unsubscribe/{id}', name: 'unsubscribe', requirements: ['id'=>'\d+'])]
-//    public function unsubscribeFromHangout(): Response
-//    {
-//    }
+    #[Route('/detail/{id}', name: 'detail', requirements: ['id' => '\d+'])]
+    public function detailHangout(int $id): Response
+    {
+        $hangout = $this->hangoutRepository->find($id);
+
+        if (!$hangout) {
+            throw $this->createNotFoundException("La sortie n'existe pas.");
+        }
+
+        return $this->render('hangout/detail.html.twig', [
+            'hangout' => $hangout
+        ]);
+    }
+
+    #[Route('/add', name: 'add')]
+    public function addHangout(Request $request, StateRepository $stateRepository): Response
+    {
+        /**
+         * @var User $user
+         */
+        $user = $this->getUser();
+
+
+        $hangout = new Hangout();
+        $form = $this->createForm(HangoutType::class, $hangout);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            ;
+            if ($form->get('save')->isClicked()) {
+                $hangout->setState($stateRepository->findOneBy(['label' => 'CREATE']));
+            } elseif ($form->get('publish')->isClicked()) {
+                $hangout->setState($stateRepository->findOneBy(['label' => 'OPEN']));
+            }
+            $hangout->setCampus($user->getCampus());
+            $hangout->setOrganizer($user);
+            dump($hangout);
+            $this->entityManager->persist($hangout);
+            $this->entityManager->flush();
+            $this->addFlash("success", "Sortie " . $hangout->getName() . "ajoutée");
+
+            return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
+        }
+
+        return $this->render('hangout/add.html.twig', [
+            'form' => $form
+        ]);
+    }
+
+    #[Route('/modify/{id}', name: 'modify', requirements: ['id' => '\d+'])]
+    public function modifyHangout(int $id): Response
+    {
+    }
+
+    #[Route('/delete/{id}', name: 'delete', requirements: ['id' => '\d+'])]
+    public function deleteHangout(int $id): Response
+    {
+    }
+
+    #[Route('/cancel/{id}', name: 'cancel', requirements: ['id' => '\d+'])]
+    public function cancelHangout(int $id): Response
+    {
+    }
+
+    #[Route('/subscribe/{id}', name: 'subscribe', requirements: ['id' => '\d+'])]
+    public function subscribeToHangout(): Response
+    {
+    }
+
+    #[Route('/unsubscribe/{id}', name: 'unsubscribe', requirements: ['id' => '\d+'])]
+    public function unsubscribeFromHangout(): Response
+    {
+    }
 }
