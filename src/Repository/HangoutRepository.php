@@ -22,10 +22,10 @@ class HangoutRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('h');
 
-        if ($user) {
-            $qb->andWhere('h.organizer = :user')
-                ->setParameter('user', $user);
-        }
+//        if ($user) {
+//            $qb->andWhere('h.organizer = :user')
+//                ->setParameter('user', $user);
+//        }
 
         if (!empty($filters['campus'])) {
             $qb->andWhere('h.campus = :campus')
@@ -52,57 +52,43 @@ class HangoutRepository extends ServiceEntityRepository
                 ->setParameter('state', $filters['state']);
         }
 
-        if ($isOrganizer) {
-            $qb->andWhere('h.organizer = :user')
+        $userConditions = [];
+
+        // Sorties dont je suis organisateur
+        if (!empty($filters['isOrganizer'])) {
+            $userConditions[] = 'h.organizer = :user';
+        }
+
+        // Sorties auxquelles je suis inscrit
+        if (!empty($filters['isRegistered'])) {
+            $qb->leftJoin('h.subscriberLst', 'subscribers');
+            $userConditions[] = 'subscribers = :user';
+        }
+
+        // Sorties auxquelles je ne suis pas inscrit (et dont je ne suis pas organisateur)
+        if (!empty($filters['isNotRegistered'])) {
+            $qb->leftJoin('h.subscriberLst', 'notSubscribers');
+            $userConditions[] = '(notSubscribers IS NULL OR notSubscribers != :user) AND h.organizer != :user';
+        }
+
+        // Appliquer les conditions utilisateur avec OR
+        if (!empty($userConditions)) {
+            $qb->andWhere('(' . implode(' OR ', $userConditions) . ')')
                 ->setParameter('user', $user);
         }
 
-        if ($isRegistered) {
-            $qb->join('h.participants', 'p')
-                ->andWhere('p = :user')
-                ->setParameter('user', $user);
+        // Gestion des sorties passées/futures
+        if (!empty($filters['isPast'])) {
+            $qb->andWhere('h.startingDateTime < :now')
+                ->setParameter('now', new \DateTime());
+        } else {
+            // Par défaut, seulement les sorties futures
+            $qb->andWhere('h.startingDateTime >= :now')
+                ->setParameter('now', new \DateTime());
         }
-
-        if ($isNotRegistered) {
-            $qb->leftJoin('h.participants', 'p')
-                ->andWhere('p != :user OR p IS NULL')
-                ->setParameter('user', $user);
-        }
-
-        if ($isPast) {
-            $qb->andWhere('h.startingDateTime < :today')
-                ->setParameter('today', new \DateTime());
-        }
-
 
         return $qb->getQuery()->getResult();
 
     }
 
-
-
-    //    /**
-    //     * @return Hangout[] Returns an array of Hangout objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('h')
-    //            ->andWhere('h.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('h.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Hangout
-    //    {
-    //        return $this->createQueryBuilder('h')
-    //            ->andWhere('h.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
 }

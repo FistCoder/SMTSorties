@@ -23,45 +23,45 @@ final class HangoutController extends AbstractController
     }
 
     #[Route('/', name: 'list')]
-    public function listHangouts(Request $request, CampusRepository $campusRepository): Response
+    public function listHangouts(Request $request): Response
     {
-        //creation du form
-        $filterForm = $this->createForm(FilterHangoutType::class);
-        $filterForm->handleRequest($request);
 
-        $isOrganizer = $filterForm->get('isOrganizer')->getData();
-        $isRegistered = $filterForm->get('isRegistered')->getData();
-        $isNotRegistered = $filterForm->get('isNotRegistered')->getData();
-        $isPast = $filterForm->get('isPast')->getData();
-
-        $filters['isOrganizer'] = $isOrganizer;
-        $filters['isRegistered'] = $isRegistered;
-        $filters['isNotRegistered'] = $isNotRegistered;
-        $filters['isPast'] = $isPast;
-
-        if ($filterForm->isSubmitted() && $filterForm->isValid()) {
-            $filters = $filterForm->getData();
-
-        } else {
-            $filters = [];
-        }
-
-
-        //Appel du repo et transmition de l'utilisateur connecter
         $user = $this->getUser();
 
         if (!$user) {
             // Gère le cas utilisateur non connecté (redirige, exception, etc.)
             throw $this->createAccessDeniedException('Vous devez être connecté');
         }
-        $hangouts = $this->hangoutRepository->findFilteredEvent($user, $filters);
 
+        //creation du form
+        $filterForm = $this->createForm(FilterHangoutType::class);
+        $filterForm->handleRequest($request);
+
+
+//recuperation des donées du formulaire de filtres remplis et ajout de ces données dans le tableau de filtre qui seras envoyer au repository
+        $filters = [];
+
+        if ($filterForm->isSubmitted() && $filterForm->isValid()) {
+            $filters = $filterForm->getData();
+
+            // Récupération des champs non mappés
+            $filters['isOrganizer'] = $filterForm->get('isOrganizer')->getData();
+            $filters['isRegistered'] = $filterForm->get('isRegistered')->getData();
+            $filters['isNotRegistered'] = $filterForm->get('isNotRegistered')->getData();
+            $filters['isPast'] = $filterForm->get('isPast')->getData();
+
+        }
+
+        // Récupération des sorties filtrées
+        $hangouts = $this->hangoutRepository->findFilteredEvent($user, $filters );
 
         dump($filters, $hangouts);
 
-        return $this->render('hangouts/list.html.twig',
-            ['hangouts' => $hangouts,
-                'filterForm' => $filterForm]);
+        return $this->render('hangouts/list.html.twig', [
+            'hangouts' => $hangouts,
+            'filterForm' => $filterForm,
+            'filtersApplied' => $filterForm->isSubmitted(),
+            ]);
     }
 
 //    #[Route('/add', name: 'add')]
