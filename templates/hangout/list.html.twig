@@ -3,7 +3,8 @@
 {% block body %}
     <div class="container">
 
-        <div class="filters">
+        <details style="background-color: #e2e2e2; padding: 6px; border-radius: 6px" class="filters accordion">
+            <summary>Filtres</summary>
             {{ form_start(filterForm) }}
             <div>
                 {{ form_row(filterForm.campus) }}
@@ -29,7 +30,7 @@
             <input type="button" value="Rechercher">
 
             {{ form_end(filterForm) }}
-        </div>
+        </details>
 
         <h2>Résultats des sorties filtrées</h2>
 
