@@ -9,6 +9,7 @@ use App\Repository\HangoutRepository;
 use App\Repository\StateRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -20,10 +21,10 @@ final class HangoutController extends AbstractController
 
 
     public function __construct(
-        private readonly StateRepository $stateRepository,
-        private readonly HangoutRepository $hangoutRepository,
+        private readonly StateRepository        $stateRepository,
+        private readonly HangoutRepository      $hangoutRepository,
         private readonly EntityManagerInterface $entityManager,
-        private readonly ValidatorInterface $validator)
+        private readonly ValidatorInterface     $validator)
     {
     }
 
@@ -59,6 +60,8 @@ final class HangoutController extends AbstractController
         $form = $this->createForm(HangoutType::class, $hangout);
 
         $form->handleRequest($request);
+
+        $request->query->get('cancelMotif', 'not_existing');
 
         if ($form->isSubmitted() && $form->isValid()) {
             ;
@@ -111,14 +114,16 @@ final class HangoutController extends AbstractController
         }
 
         if ($hangout->getState()->getLabel() == "OPEN") {
-        $hangout->addSubscriberLst($user);
+            $hangout->addSubscriberLst($user);
         }
 
         if ($hangout->getSubscriberLst()->contains($user)) {
-            $this->addFlash('error', $user->getFirstname(). " is already subscribed to this hangout. That's you");
+            $this->addFlash('error', $user->getFirstname() . " is already subscribed to this hangout. That's you");
             return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
         }
-
+        if ($hangout->getSubscriberLst()->count() == $hangout->getMaxParticipant()) {
+            $hangout->setState($this->stateRepository->findOneBy(['label' => 'CLOSED']));
+        }
 
         $violations = $this->validator->validate($hangout);
         if (count($violations) > 0) {
@@ -130,16 +135,51 @@ final class HangoutController extends AbstractController
             $this->entityManager->flush();
         }
 
-
-        if ($hangout->getSubscriberLst()->count() == $hangout->getMaxParticipant()) {
-            $hangout->setState($this->stateRepository->findOneBy(['label' => 'CLOSED']));
-        }
-
         return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
     }
 
     #[Route('/unsubscribe/{id}', name: 'unsubscribe', requirements: ['id' => '\d+'])]
-    public function unsubscribeFromHangout(): Response
+    public function unsubscribeFromHangout(int $id, Request $request): Response
     {
+        /**
+         * @var User $user
+         */
+        $user = $this->getUser();
+        $hangout = $this->hangoutRepository->find($id);
+        if (!$hangout) {
+            throw $this->createNotFoundException("La sortie n'existe pas.");
+        }
+
+        if ($hangout->getSubscriberLst()->contains($user)) {
+            $hangout->removeSubscriberLst($user);
+        }
+
+        if ($hangout->getSubscriberLst()->count() != $hangout->getMaxParticipant()) {
+            $hangout->setState($this->stateRepository->findOneBy(['label' => 'OPEN']));
+        }
+
+        $violations = $this->validator->validate($hangout);
+        if (count($violations) > 0) {
+            foreach ($violations as $violation) {
+                $this->addFlash('danger', $violation->getMessage());
+            }
+        } else {
+            $this->entityManager->persist($hangout);
+            $this->entityManager->flush();
+        }
+
+        $referer = $request->headers->get('referer');
+
+        // Validate referer: must be a proper URL and same host
+        if ($referer && filter_var($referer, FILTER_VALIDATE_URL)) {
+            return new RedirectResponse($referer);
+        }
+
+        // I'd rather use an event listener that saves the last page in session,
+        // but im pretty sure there is a better solution,
+        // so it's going to stay like this for a while.
+        // Right now it relies on the $referer, which may or may not exist
+        return $this->redirectToRoute('hangout_list');
+
     }
 }
