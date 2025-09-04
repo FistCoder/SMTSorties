@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1 type="title">Liste des lieux :D</h1>
+    <table>
+        <thead>
+        <tr>
+            <th>Nom de lieu</th>
+            <th>Rue</th>
+            <th>Coordonées</th>
+{#            <th>Latitude</th>#}
+            <th>Ville</th>
+            <th>Sorties enregistrées pour ce lieu</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for place in places %}
+            {% set coords = [place.latitude, place.longitude] %}
+            <tr>
+                <th>
+            {{ place.name }}
+                </th>
+                <td>{{ place.street }}</td>
+                <td>{{ coords|join(', ') }}</td>
+                <td>{{ place.city.name }}</td>
+                <td>{% for hangout in place.hangoutLst %} <a href="{{ path('hangout_detail', {'id': hangout.id}) }}">{{ hangout.name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</td>
+                <td role="group">
+                    <a type="button" class="secondary" href="{{ path('places_modify', {'id': place.id}) }}">Modifier</a>
+                    <a type="button" class=" outline" href="{{ path('places_delete', {'id': place.id}) }}">Supprimer</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

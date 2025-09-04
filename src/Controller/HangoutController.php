@@ -16,6 +16,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+
+
 #[Route('/hangouts', name: 'hangout_')]
 final class HangoutController extends AbstractController
 {
@@ -64,8 +66,6 @@ final class HangoutController extends AbstractController
 
 // Récupération des sorties filtrées
         $hangouts = $this->hangoutRepository->findFilteredEvent($user, $filters);
-
-        dump($filters, $hangouts);
 
         return $this->render('hangout/list.html.twig', [
             'hangouts' => $hangouts,
