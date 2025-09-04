@@ -33,6 +33,9 @@ final class HangoutController extends AbstractController
     public function listHangouts(Request $request): Response
     {
 
+        /**
+         * @var User $user
+         */
         $user = $this->getUser();
 
         if (!$user) {
@@ -64,7 +67,7 @@ final class HangoutController extends AbstractController
 
         dump($filters, $hangouts);
 
-        return $this->render('hangouts/list.html.twig', [
+        return $this->render('hangout/list.html.twig', [
             'hangouts' => $hangouts,
             'filterForm' => $filterForm,
             'filtersApplied' => $filterForm->isSubmitted(),
@@ -153,14 +156,14 @@ final class HangoutController extends AbstractController
             throw $this->createNotFoundException("La sortie n'existe pas.");
         }
 
+        if ($hangout->getSubscriberLst()->contains($user)) {
+            $this->addFlash('danger', $user->getFirstname() . " is already subscribed to this hangout. That's you");
+            return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
+        }
         if ($hangout->getState()->getLabel() == "OPEN") {
             $hangout->addSubscriberLst($user);
         }
 
-        if ($hangout->getSubscriberLst()->contains($user)) {
-            $this->addFlash('error', $user->getFirstname() . " is already subscribed to this hangout. That's you");
-            return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
-        }
         if ($hangout->getSubscriberLst()->count() == $hangout->getMaxParticipant()) {
             $hangout->setState($this->stateRepository->findOneBy(['label' => 'CLOSED']));
         }
@@ -204,6 +207,7 @@ final class HangoutController extends AbstractController
                 $this->addFlash('danger', $violation->getMessage());
             }
         } else {
+            $this->addFlash('success', "Désistement avec success.");
             $this->entityManager->persist($hangout);
             $this->entityManager->flush();
         }
