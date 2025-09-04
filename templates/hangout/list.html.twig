@@ -4,8 +4,8 @@
     <div>
 
         <details style="padding: 6px; border-radius: 6px" class="filters accordion">
-            <summary style="color: #FFBF00" class="pico-color-violet-800">Filtres</summary>
-            <div style="padding: 6px; border-radius: 6px" class="pico-background-jade-800">
+            <summary  >Filtres</summary>
+            <div style="padding: 6px; border-radius: 6px" >
                 {{ form_start(filterForm) }}
                 <div class="grid">
                     <div>
@@ -20,7 +20,7 @@
                         {{ form_row(filterForm.isRegistered) }}
                         {{ form_row(filterForm.isNotRegistered) }}
                         {{ form_row(filterForm.isPast) }}<br>
-                        <button type="submit" class="pico-background-jade-350" style="width: 40%">Rechercher</button>
+                        <button type="submit"  style="width: 40%">Rechercher</button>
                     </div>
                 </div>
                 {{ form_end(filterForm) }}
@@ -28,9 +28,9 @@
 
         </details>
 
-        <div class="grid justify-end">
+        <div >
             <a href="{{ path('hangout_add') }}">
-                <button class="pico-background-jade-800">Créer une sortie</button>
+                <button >Créer une sortie</button>
             </a>
         </div>
 

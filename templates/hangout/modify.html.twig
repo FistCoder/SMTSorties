@@ -9,25 +9,29 @@
         {{ form_start(formUpdate) }}
         <div class="grid">
             <div>
-            {{ form_row(formUpdate.name) }}
-            {{ form_row(formUpdate.startingDateTime) }}
-            {{ form_row(formUpdate.lastSubmitDate) }}
-            {{ form_row(formUpdate.detail) }}
+                {{ form_row(formUpdate.name) }}
+                {{ form_row(formUpdate.startingDateTime) }}
+                {{ form_row(formUpdate.lastSubmitDate) }}
+                {{ form_row(formUpdate.detail) }}
 
             </div>
             <div>
                 {{ form_row(formUpdate.maxParticipant) }}
                 {{ form_row(formUpdate.length) }}
                 {{ form_row(formUpdate.location, {'attr': {'class': 'button'}}) }}
-{#                <p>#}
-{#                    Latitude: {{ hangout.location.latitude }} <br>#}
-{#                    Longitude: {{ hangout.location.longitude }}#}
-{#                </p>#}
+                {#                <p> #}
+                {#                    Latitude: {{ hangout.location.latitude }} <br> #}
+                {#                    Longitude: {{ hangout.location.longitude }} #}
+                {#                </p> #}
                 {{ form_row(formUpdate.save) }}
                 {{ form_row(formUpdate.publish) }}
-{#                <a href="{{ path('hangout_delete') }}"><button type="submit">Supprimer</button></a>#}
-{#                <a href="{{ path('hangout_cancel') }}"><button type="submit">Annuler</button></a>#}
-           {{ form_end(formUpdate) }}
+                {% if is_granted('POST_DELETE', hangout) %}
+                    <a href="{{ path('hangout_delete') }}">
+                        <button type="submit">Supprimer</button>
+                    </a>
+                {% endif %}
+                {#                <a href="{{ path('hangout_cancel') }}"><button type="submit">Annuler</button></a> #}
+                {{ form_end(formUpdate) }}
             </div>
         </div>
     </div>

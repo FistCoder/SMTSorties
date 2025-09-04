@@ -151,9 +151,15 @@ final class HangoutController extends AbstractController
         ]);
     }
 
+    #[IsGranted('POST_DELETE', 'hangout')]
     #[Route('/delete/{id}', name: 'delete', requirements: ['id' => '\d+'])]
-    public function deleteHangout(int $id): Response
+    public function deleteHangout(int $id, Hangout $hangout): Response
     {
+        $this->entityManager->remove($hangout);
+        $this->entityManager->flush();
+
+        $this->addFlash('sucess', 'Votre Sortie a bien été suprimmée');
+        return $this->redirectToRoute('hangout_list');
     }
 
     #[Route('/cancel/{id}', name: 'cancel', requirements: ['id' => '\d+'])]

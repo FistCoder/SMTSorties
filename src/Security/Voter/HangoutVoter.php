@@ -14,7 +14,7 @@ final class HangoutVoter extends Voter
 {
     public const EDIT = 'POST_EDIT';
 
-//    public const VIEW = 'POST_VIEW';
+    public const DELETE = 'POST_DELETE';
 
     public function __construct(private Security $security)
     {
@@ -25,7 +25,7 @@ final class HangoutVoter extends Voter
     {
         // replace with your own logic
         // https://symfony.com/doc/current/security/voters.html
-        return in_array($attribute, [self::EDIT])
+        return in_array($attribute, [self::EDIT, self::DELETE])
             && $subject instanceof \App\Entity\Hangout;
     }
 
@@ -39,27 +39,16 @@ final class HangoutVoter extends Voter
         }
 
         /**
-        * @var Hangout $subject
+         * @var Hangout $subject
          */
 
-        if (self::EDIT) {
-            return ($user === $subject->getOrganizer() && $this->security->isGranted('ROLE_USER'));
+//      ...  (check conditions and return true to grant permission) ...
+        switch ($attribute) {
+            case self::EDIT:
+                return ($user === $subject->getOrganizer() || $this->security->isGranted('ROLE_ADMIN'));
+            case self::DELETE:
+                return ($user === $subject->getOrganizer() || $this->security->isGranted('ROLE_ADMIN'));
         }
-
-        // ... (check conditions and return true to grant permission) ...
-//        switch ($attribute) {
-//            case self::EDIT:
-//                // logic to determine if the user can EDIT
-//                // return true or false
-//                break;
-//
-//            case self::VIEW:
-//                // logic to determine if the user can VIEW
-//                // return true or false
-//                break;
-//        }
-        else {
-            return throw new \LogicException('This code should not be reached!');
-        }
+        return false;
     }
 }
