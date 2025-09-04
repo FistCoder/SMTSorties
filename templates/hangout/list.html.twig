@@ -1,36 +1,38 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="container">
+    <div>
 
-        <details style="background-color: #e2e2e2; padding: 6px; border-radius: 6px" class="filters accordion">
-            <summary>Filtres</summary>
-            {{ form_start(filterForm) }}
-            <div>
-                {{ form_row(filterForm.campus) }}
-            </div>
-            <div>
-                {{ form_row(filterForm.name) }}
-            </div>
-            <div>
-                {{ form_row(filterForm.start) }}
-                {{ form_row(filterForm.end) }}
-            </div>
-            <div>
-                {{ form_row(filterForm.state) }}
+        <details style="padding: 6px; border-radius: 6px" class="filters accordion">
+            <summary style="color: #FFBF00" class="pico-color-violet-800">Filtres</summary>
+            <div style="padding: 6px; border-radius: 6px" class="pico-background-jade-800">
+                {{ form_start(filterForm) }}
+                <div class="grid">
+                    <div>
+                        {{ form_row(filterForm.campus) }}
+                        {{ form_row(filterForm.name) }}
+                        {{ form_row(filterForm.start) }}
+                        {{ form_row(filterForm.end) }}
+                        {{ form_row(filterForm.state) }}
+                    </div>
+                    <div class="checkboxes">
+                        {{ form_row(filterForm.isOrganizer) }}
+                        {{ form_row(filterForm.isRegistered) }}
+                        {{ form_row(filterForm.isNotRegistered) }}
+                        {{ form_row(filterForm.isPast) }}<br>
+                        <button type="submit" class="pico-background-jade-350" style="width: 40%">Rechercher</button>
+                    </div>
+                </div>
+                {{ form_end(filterForm) }}
             </div>
 
-            <div class="checkboxes">
-                {{ form_row(filterForm.isOrganizer) }}
-                {{ form_row(filterForm.isRegistered) }}
-                {{ form_row(filterForm.isNotRegistered) }}
-                {{ form_row(filterForm.isPast) }}
-            </div>
-
-            <input type="button" value="Rechercher">
-
-            {{ form_end(filterForm) }}
         </details>
+
+        <div class="grid justify-end">
+            <a href="{{ path('hangout_add') }}">
+                <button class="pico-background-jade-800">Créer une sortie</button>
+            </a>
+        </div>
 
         <h2>Résultats des sorties filtrées</h2>
 
@@ -47,31 +49,28 @@
             </thead>
             <tbody>
             {% if hangouts is empty %}
-                <tr>
-                    <td colspan="5">Aucune sortie trouvée.</td>
-                </tr>
+            <tr>
+                <td colspan="5">Aucune sortie trouvée.</td>
+            </tr>
             {% else %}
-                {% for hangout in hangouts %}
-                    <tr>
-                        <td>{{ hangout.name }}</td>
-                        <td>{{ hangout.startingDateTime|date('d/m/Y H:i') }}</td>
-                        <td>{{ hangout.campus.name }}</td>
-                        <td>{{ hangout.state.label }}</td>
-                        <td>{{ hangout.organizer.firstname }}</td>
-                        <td>
-                            <a href="{{ path('hangout_subscribe', {'id': hangout.id}) }}" class="contrast no-underline">S'inscrire</a><br>
-                            <a href="{{ path('hangout_unsubscribe', {'id': hangout.id}) }}" class="contrast no-underline">Se désister</a>
-                        </td>
+            {% for hangout in hangouts %}
+            <tr>
+                <td>{{ hangout.name }}</td>
+                <td>{{ hangout.startingDateTime|date('d/m/Y H:i') }}</td>
+                <td>{{ hangout.campus.name }}</td>
+                <td>{{ hangout.state.label }}</td>
+                <td>{{ hangout.organizer.firstname }}</td>
+                <td>
+                    <a href="{{ path('hangout_detail', {'id': hangout.id}) }}"
+                       class="contrast no-underline">Afficher</a><br>
+                    <a href="{{ path('hangout_unsubscribe', {'id': hangout.id}) }}" class="contrast no-underline">Se
+                        désister</a>
+                </td>
                 {% endfor %}
-            {% endif %}
+                {% endif %}
             </tbody>
         </table>
 
-        <div>
-
-            <a class="no-underline" href="{{ path('hangout_add') }}"><button class="contrast">Créer une sortie</button></a>
-
-        </div>
 
     </div>
 {% endblock %}

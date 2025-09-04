@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/hangouts', name: 'hangout_')]
@@ -128,9 +129,26 @@ final class HangoutController extends AbstractController
         ]);
     }
 
+    #[IsGranted('POST_EDIT', 'hangout')]
     #[Route('/modify/{id}', name: 'modify', requirements: ['id' => '\d+'])]
-    public function modifyHangout(int $id): Response
+    public function modifyHangout(Request $request, Hangout $hangout): Response
     {
+
+        $form = $this->createForm(HangoutType::class, $hangout);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->entityManager->persist($hangout);
+            $this->entityManager->flush();
+
+            $this->addFlash("success", "Sortie mise a jours !");
+            return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
+        }
+        return $this->render('hangout/modify.html.twig', [
+            'formUpdate' => $form,
+            'hangout' => $hangout,
+        ]);
     }
 
     #[Route('/delete/{id}', name: 'delete', requirements: ['id' => '\d+'])]
