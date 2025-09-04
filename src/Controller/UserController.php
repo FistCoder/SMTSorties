@@ -19,17 +19,24 @@ final class UserController extends AbstractController
     public function __construct(private UserPasswordHasherInterface $userPasswordHasher)
     {
     }
-    #[Route('/detail/{id}', name: 'detail', requirements: ['id'=>'\d+'])]
 
-    public function userDetail(int $id): Response
+    #[Route('/detail/{id}', name: 'detail', requirements: ['id' => '\d+'])]
+    public function userDetail(int $id, UserRepository $userRepository): Response
     {
+        $user = $userRepository->find($id);
+        if (!$user) {
+            throw $this->createNotFoundException("User not found");
+        }
+        return $this->render('user/detail.html.twig', [
+            "user" => $user,
+        ]);
     }
 
     #[Route('/modify', name: 'modify')]
     public function userModify(
-        Request $request,
+        Request                $request,
         EntityManagerInterface $entityManager,
-        UserRepository $userRepository
+        UserRepository         $userRepository
     ): Response
 
     {
@@ -45,22 +52,25 @@ final class UserController extends AbstractController
 
         if ($userForm->isSubmitted() && $userForm->isValid()) {
 
-//            $existingUser = $userRepository->findOneBy(['username' => $user->getUsername()]);
+            $image = $userForm->get('userPicture')->getData();
 
-//            if ($existingUser && $existingUser->getId() !== $user->getId()){
-//                $userForm->get('username')->addError(new FormError('Username already taken'));
-//            } else {
-            if($userForm->get('confirmPassword')->getData()){
-                    $user->setPassword($this->userPasswordHasher->hashPassword($user, $userForm->get('confirmPassword')->getData()));
+            $newFileName = uniqid() . '.' . $image->guessExtension();
+            $image->move($this->getParameter('user_picture_dir'), $newFileName);
+            $user->setUserPicture($newFileName);
+
+            if ($userForm->get('confirmPassword')->getData()) {
+                $user->setPassword($this->userPasswordHasher->hashPassword($user, $userForm->get('confirmPassword')->getData()));
             }
-                    $entityManager->persist($user);
-                    $entityManager->flush();
-                    $this->addFlash("success", "User modified successfully");
-                    return $this->redirectToRoute('user_modify', ['id' => $user->getId()]);
-//        }
-    }
+            $entityManager->persist($user);
+            $entityManager->flush();
+            $this->addFlash("success", "User modified successfully");
+            return $this->redirectToRoute('user_modify', ['id' => $user->getId()]);
+
+        }
         return $this->render('user/modify.html.twig', [
             'userForm' => $userForm,
         ]);
-        }
+    }
 }
+
+

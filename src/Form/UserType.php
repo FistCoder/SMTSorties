@@ -7,10 +7,12 @@ use App\Entity\Hangout;
 use App\Entity\User;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Image;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
@@ -42,6 +44,19 @@ class UserType extends AbstractType
             ->add('campus', EntityType::class, [
                 'class' => Campus::class,
                 'choice_label' => 'id',
+            ])
+            ->add('userPicture', FileType::class, [
+                'label' => 'Ma photo',
+                'mapped' => false,
+                'required' => false,
+                'constraints' => [
+                    new Image(
+                        maxSize: '1M',
+                        maxSizeMessage: "'L'image ne doit pas dépasser 1 Mo",
+                        extensions: ["jpg", "png"],
+                        extensionsMessage: "les types autorisés sont .png et .jpg"
+                    )
+                ]
             ])
         ;
     }

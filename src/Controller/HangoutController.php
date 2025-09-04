@@ -8,6 +8,7 @@ use App\Form\HangoutType;
 use App\Repository\HangoutRepository;
 use App\Repository\StateRepository;
 use App\Repository\UserRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -50,7 +51,6 @@ final class HangoutController extends AbstractController
          */
         $user = $this->getUser();
 
-
         $hangout = new Hangout();
         $form = $this->createForm(HangoutType::class, $hangout);
 
@@ -89,8 +89,44 @@ final class HangoutController extends AbstractController
     }
 
     #[Route('/cancel/{id}', name: 'cancel', requirements: ['id' => '\d+'])]
-    public function cancelHangout(int $id): Response
+    public function cancelHangout(
+        int $id,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        HangoutRepository $hangoutRepository,
+        StateRepository $stateRepository
+    ): Response
     {
+        $hangout = $hangoutRepository->find($id);
+        $state = $stateRepository->findOneBy(['label' => 'CANCELLED']);
+        $dateNow = new DateTimeImmutable();
+        dump($dateNow);
+
+        if (!$hangout) {
+            throw $this->createNotFoundException("Hangout not found");
+        }
+        if($request->isMethod('POST')) {
+
+            if ($hangout->getStartingDateTime() < $dateNow) {
+                $this->addFlash('', "la sortie " . $hangout->getName() . " a déjà commencé, elle ne peut pas être annulée");
+                return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
+            } else {
+            $cancelMotif = $request->request->get('cancelMotif', null);
+            $hangoutDetail = $hangout->getDetail();
+            $hangout->setDetail($hangoutDetail . '. Annulé : ' . $cancelMotif);
+            $hangout->setState($state);
+            $this->entityManager->persist($hangout);
+            $this->entityManager->flush();
+            $this->addFlash('success', "Sortie " . $hangout->getName() . " cancelled");
+
+            return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
+            }
+        }
+
+        return $this->render('hangout/cancel.html.twig', [
+            'hangout'=> $hangout
+        ]);
+
     }
 
     #[Route('/subscribe/{id}', name: 'subscribe', requirements: ['id' => '\d+'])]
@@ -102,4 +138,49 @@ final class HangoutController extends AbstractController
     public function unsubscribeFromHangout(): Response
     {
     }
+
+    #[Route('/', name: 'update_list')]
+    public function updateState(
+        HangoutRepository $hangoutRepository,
+        StateRepository $stateRepository,
+
+        Request $request,
+        EntityManagerInterface $entityManager,
+    ): Response
+    {
+        $dateNow = new DateTimeImmutable();
+        $hangoutLst = $hangoutRepository->findAll();
+        foreach ($hangoutLst as $hangout) {
+            $dateEnd = clone $hangout->getStartingDateTime();
+            $lengthSeconds =  $hangout->getLength()->days * 24 * 60 * 60 +
+                        $hangout->getLength()->h * 60 * 60 +
+                        $hangout->getLength()->i * 60 +
+                        $hangout->getLength()->s;
+            ;
+            if ($hangout->getState()=== $stateRepository->findOneBy(['label' => 'CANCELLED'])) {
+
+                if ($dateEnd->modify('+ 1 month') > $dateNow) {
+                    $hangout->setState($stateRepository->findOneBy(['label' => 'ARCHIVED']));
+                }
+
+            } else {
+
+                if ($hangout->getLastSubmitDate() > $dateNow or $hangout->getSubscriberLst()->count() >= $hangout->getMaxParticipant()) {
+                    $state = $stateRepository->findOneBy(['label' => 'CLOSED']);
+                    $hangout->setState($state);
+                }
+                if ($hangout->getStartingDateTime() > $dateNow) {
+                    $hangout->setState($stateRepository->findOneBy(['label' => 'IN_PROCESS']));
+                }
+                if ($dateEnd->modify('+' .$lengthSeconds. 'seconds')> $dateNow) {
+                    $hangout->setState($stateRepository->findOneBy(['label' => 'FINISHED']));
+                }
+                if ($dateEnd->modify('+' .$lengthSeconds. 'seconds + 1 month' > $dateNow) {
+                    $hangout->setState($stateRepository->findOneBy(['label' => 'ARCHIVED']));
+                }
+            }
+        }
+
+    }
+
 }
