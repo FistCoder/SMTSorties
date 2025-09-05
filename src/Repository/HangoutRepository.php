@@ -4,7 +4,9 @@ namespace App\Repository;
 
 use App\Entity\Hangout;
 use App\Entity\User;
+use App\Form\Models\FiltresModel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -18,77 +20,80 @@ class HangoutRepository extends ServiceEntityRepository
     }
 
     //methode pour gerer les filters et injections des données utilisateurs et du formulaire
-    public function findFilteredEvent(?User $user, array $filters)
+    public function findFilteredEvent(?User $user, FiltresModel $filters, int $page = 1)
     {
-        $qb = $this->createQueryBuilder('h');
+        $qb = $this->createQueryBuilder('h')
+            ->leftJoin('h.campus', 'campus')
+            ->addSelect('campus')
+            ->leftJoin('h.organizer', 'user')
+            ->addSelect('user')
+            ->leftJoin('h.state', 'state')
+            ->addSelect('state')
+            ->addorderBy('state.id', 'ASC');
 
-//        if ($user) {
-//            $qb->andWhere('h.organizer = :user')
-//                ->setParameter('user', $user);
-//        }
 
-        if (!empty($filters['campus'])) {
+        if (!empty($filters->getCampus() !== null)) {
             $qb->andWhere('h.campus = :campus')
-                ->setParameter('campus', $filters['campus']);
+                ->setParameter('campus', $filters->getCampus());
         }
 
-        if (!empty($filters['name'])) {
+        if (!empty($filters->getName() !== null)) {
             $qb->andWhere('h.name LIKE :name')
-                ->setParameter('name', '%' . $filters['name'] . '%');
+                ->setParameter('name', '%' . $filters->getName() . '%');
         }
 
-        if (!empty($filters['start'])) {
+        if (!empty($filters->getStart() !== null)) {
             $qb->andWhere('h.startingDateTime >= :start')
-                ->setParameter('start', $filters['start']);
+                ->setParameter('start', $filters->getStart());
         }
 
-        if (!empty($filters['end'])) {
+        if (!empty($filters->getEnd() !== null)) {
             $qb->andWhere('h.startingDateTime <= :end')
-                ->setParameter('end', $filters['end']);
+                ->setParameter('end', $filters->getEnd());
         }
 
-        if (!empty($filters['state'])) {
+        if (!empty($filters->getState())) {
             $qb->andWhere('h.state = :state')
-                ->setParameter('state', $filters['state']);
+                ->setParameter('state', $filters->getState());
         }
 
-        $userConditions = [];
-
-        // Sorties dont je suis organisateur
-        if (!empty($filters['isOrganizer'])) {
-            $userConditions[] = 'h.organizer = :user';
-        }
-
-        // Sorties auxquelles je suis inscrit
-        if (!empty($filters['isRegistered'])) {
-            $qb->leftJoin('h.subscriberLst', 'subscribers');
-            $userConditions[] = 'subscribers = :user';
-        }
-
-        // Sorties auxquelles je ne suis pas inscrit (et dont je ne suis pas organisateur)
-        if (!empty($filters['isNotRegistered'])) {
-            $qb->leftJoin('h.subscriberLst', 'notSubscribers');
-            $userConditions[] = '(notSubscribers IS NULL OR notSubscribers != :user) AND h.organizer != :user';
-        }
-
-        // Appliquer les conditions utilisateur avec OR
-        if (!empty($userConditions)) {
-            $qb->andWhere('(' . implode(' OR ', $userConditions) . ')')
+        if ($filters->isOrganizer()) {
+            $qb->andWhere('h.organizer = :user')
                 ->setParameter('user', $user);
         }
 
-        // Gestion des sorties passées/futures
-        if (!empty($filters['isPast'])) {
-            $qb->andWhere('h.startingDateTime < :now')
-                ->setParameter('now', new \DateTime());
-        } else {
-            // Par défaut, seulement les sorties futures
-            $qb->andWhere('h.startingDateTime >= :now')
-                ->setParameter('now', new \DateTime());
+        if ($filters->isRegistered()) {
+            $qb->leftJoin('h.subscriberLst', 'subscribers');
+            $qb->andWhere('subscribers = :user')
+                ->setParameter('user', $user);
         }
 
-        return $qb->getQuery()->getResult();
+        if ($filters->isNotRegistered()) {
+            $qb->leftJoin('h.subscriberLst', 'notSubscribers');
+            $qb->andWhere('(notSubscribers IS NULL OR notSubscribers != :user) AND h.organizer != :user')
+                ->setParameter('user', $user);
+        }
 
+        $now = new \DateTime();
+
+        if ($filters->isPast()) {
+            $qb->andWhere('h.startingDateTime < :now');
+        } else {
+            $qb->andWhere('h.startingDateTime >= :now');
+        }
+
+        $qb->setParameter('now', $now);
+        $query = $qb->getQuery();
+
+        $limit = Hangout::HANGOUT_PER_PAGE;
+        $offset = ($page - 1) * $limit;
+
+        $query->setMaxResults($limit);
+        $query->setFirstResult($offset);
+
+        $paginator = new Paginator($query);
+        return $paginator;
     }
+
 
 }
