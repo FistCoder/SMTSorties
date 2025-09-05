@@ -25,11 +25,7 @@
                 {#                </p> #}
                 {{ form_row(formUpdate.save) }}
                 {{ form_row(formUpdate.publish) }}
-                {% if is_granted('POST_DELETE', hangout) %}
-                    <a href="{{ path('hangout_delete', {'id' : hangout.id}) }}">
-                        <button type="submit">Supprimer</button>
-                    </a>
-                {% endif %}
+                {{ form_row(formUpdate.delete) }}
                 {#                <a href="{{ path('hangout_cancel') }}"><button type="submit">Annuler</button></a> #}
                 {{ form_end(formUpdate) }}
             </div>

@@ -44,9 +44,8 @@ final class HangoutVoter extends Voter
 
 //      ...  (check conditions and return true to grant permission) ...
         switch ($attribute) {
-            case self::EDIT:
-                return ($user === $subject->getOrganizer() || $this->security->isGranted('ROLE_ADMIN'));
             case self::DELETE:
+            case self::EDIT:
                 return ($user === $subject->getOrganizer() || $this->security->isGranted('ROLE_ADMIN'));
         }
         return false;

@@ -6,6 +6,7 @@ use App\Entity\Hangout;
 use App\Entity\User;
 use App\Form\FilterHangoutType;
 use App\Form\HangoutType;
+use App\Form\Models\FiltresModel;
 use App\Repository\HangoutRepository;
 use App\Repository\StateRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,6 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use function PHPUnit\Framework\throwException;
 
 #[Route('/hangouts', name: 'hangout_')]
 final class HangoutController extends AbstractController
@@ -39,34 +41,30 @@ final class HangoutController extends AbstractController
          */
         $user = $this->getUser();
 
+        $filtersModel = new FiltresModel();//permet de mapper les données directement atravers le model
+
         if (!$user) {
             // Gère le cas utilisateur non connecté (redirige, exception, etc.)
             throw $this->createAccessDeniedException('Vous devez être connecté');
         }
 
-//creation du form
-        $filterForm = $this->createForm(FilterHangoutType::class);
+//creation du form - et je lui passe le model
+        $filterForm = $this->createForm(FilterHangoutType::class, $filtersModel);
         $filterForm->handleRequest($request);
 
 
 //recuperation des donées du formulaire de filtres remplis et ajout de ces données dans le tableau de filtre qui seras envoyer au repository
-        $filters = [];
+        $hangouts = [];
 
         if ($filterForm->isSubmitted() && $filterForm->isValid()) {
             $filters = $filterForm->getData();
 
-            // Récupération des champs non mappés
-            $filters['isOrganizer'] = $filterForm->get('isOrganizer')->getData();
-            $filters['isRegistered'] = $filterForm->get('isRegistered')->getData();
-            $filters['isNotRegistered'] = $filterForm->get('isNotRegistered')->getData();
-            $filters['isPast'] = $filterForm->get('isPast')->getData();
-
+            $hangouts = $this->hangoutRepository->findFilteredEvent($user, $filters);
+        } else {
+            // Par défaut (pas de filtre), recupère tout ou selon ta logique
+            $hangouts = $this->hangoutRepository->findFilteredEvent($user, new FiltresModel());
         }
-
-// Récupération des sorties filtrées
-        $hangouts = $this->hangoutRepository->findFilteredEvent($user, $filters);
-
-        dump($filters, $hangouts);
+//        dump($filters, $hangouts);
 
         return $this->render('hangout/list.html.twig', [
             'hangouts' => $hangouts,
@@ -139,11 +137,19 @@ final class HangoutController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->entityManager->persist($hangout);
-            $this->entityManager->flush();
+            if ($form->get('delete')->isClicked()) {
+                $this->entityManager->remove($hangout);
+                $this->entityManager->flush();
+                $this->addFlash('success', 'Sortie supprimée avec success');
+                return $this->redirectToRoute('hangout_list', ['id' => $hangout->getId()]);
+            } elseif ($form->get('save')->isClicked()) {
+                $this->entityManager->persist($hangout);
+                $this->entityManager->flush();
 
-            $this->addFlash("success", "Sortie mise a jours !");
-            return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
+                $this->addFlash("success", "Sortie mise a jours !");
+                return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
+            }
+
         }
         return $this->render('hangout/modify.html.twig', [
             'formUpdate' => $form,
@@ -151,21 +157,21 @@ final class HangoutController extends AbstractController
         ]);
     }
 
-    #[IsGranted('POST_DELETE', 'hangout')]
-    #[Route('/delete/{id}', name: 'delete', requirements: ['id' => '\d+'])]
-    public function deleteHangout(int $id): Response
-    {
-        $hangout = $this->hangoutRepository->find($id);
-        if (!$hangout) {
-            throw $this->createNotFoundException("La sortie n'existe pas.");
-        }
-
-        $this->entityManager->remove($hangout);
-        $this->entityManager->flush();
-
-        $this->addFlash('sucess', 'Votre Sortie a bien été suprimmée');
-        return $this->redirectToRoute('hangout_list');
-    }
+//    #[IsGranted('POST_DELETE', 'hangout')]//c'est les acces grace au voter ca marche pour le bouton de edition
+//    #[Route('/delete/{id}', name: 'delete', requirements: ['id' => '\d+'])]
+//    public function deleteHangout(int $id): Response
+//    {
+//        $hangout = $this->hangoutRepository->find($id);
+//        if (!$hangout) {
+//            throw $this->createNotFoundException("La sortie n'existe pas.");
+//        }
+//
+//        $this->entityManager->remove($hangout);
+//        $this->entityManager->flush();
+//
+//        $this->addFlash('sucess', 'Votre Sortie a bien été suprimmée');
+//        return $this->redirectToRoute('hangout_list');
+//    }
 
     #[Route('/cancel/{id}', name: 'cancel', requirements: ['id' => '\d+'])]
     public function cancelHangout(int $id): Response
