@@ -3,12 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\Hangout;
+use App\Entity\Location;
 use App\Entity\User;
 use App\Form\FilterHangoutType;
 use App\Form\HangoutType;
 use App\Form\Models\FiltresModel;
+use App\Form\PlaceType;
 use App\Repository\HangoutRepository;
 use App\Repository\StateRepository;
+use App\Repository\UserRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -18,6 +22,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use function PHPUnit\Framework\throwException;
+
+
 
 #[Route('/hangouts', name: 'hangout_')]
 final class HangoutController extends AbstractController
@@ -66,6 +72,7 @@ final class HangoutController extends AbstractController
         }
 //        dump($filters, $hangouts);
 
+
         return $this->render('hangout/list.html.twig', [
             'hangouts' => $hangouts,
             'filterForm' => $filterForm,
@@ -97,11 +104,16 @@ final class HangoutController extends AbstractController
          */
         $user = $this->getUser();
 
-
         $hangout = new Hangout();
+        $place = new Location();
         $form = $this->createForm(HangoutType::class, $hangout);
 
+        $formPlace = $this->createForm(PlaceType::class, $place, [
+            'action' => $this->generateUrl('places_add')
+        ]);
+
         $form->handleRequest($request);
+        $formPlace->handleRequest($request);
 
         $request->query->get('cancelMotif', 'not_existing');
 
@@ -123,7 +135,8 @@ final class HangoutController extends AbstractController
         }
 
         return $this->render('hangout/add.html.twig', [
-            'form' => $form
+            'formHangout' => $form,
+            'formPlace' => $formPlace,
         ]);
     }
 
@@ -174,8 +187,44 @@ final class HangoutController extends AbstractController
 //    }
 
     #[Route('/cancel/{id}', name: 'cancel', requirements: ['id' => '\d+'])]
-    public function cancelHangout(int $id): Response
+    public function cancelHangout(
+        int $id,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        HangoutRepository $hangoutRepository,
+        StateRepository $stateRepository
+    ): Response
     {
+        $hangout = $hangoutRepository->find($id);
+        $state = $stateRepository->findOneBy(['label' => 'CANCELLED']);
+        $dateNow = new DateTimeImmutable();
+        dump($dateNow);
+
+        if (!$hangout) {
+            throw $this->createNotFoundException("Hangout not found");
+        }
+        if($request->isMethod('POST')) {
+
+            if ($hangout->getStartingDateTime() < $dateNow) {
+                $this->addFlash('', "la sortie " . $hangout->getName() . " a déjà commencé, elle ne peut pas être annulée");
+                return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
+            } else {
+            $cancelMotif = $request->request->get('cancelMotif', null);
+            $hangoutDetail = $hangout->getDetail();
+            $hangout->setDetail($hangoutDetail . '. Annulé : ' . $cancelMotif);
+            $hangout->setState($state);
+            $this->entityManager->persist($hangout);
+            $this->entityManager->flush();
+            $this->addFlash('success', "Sortie " . $hangout->getName() . " cancelled");
+
+            return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
+            }
+        }
+
+        return $this->render('hangout/cancel.html.twig', [
+            'hangout'=> $hangout
+        ]);
+
     }
 
     #[Route('/subscribe/{id}', name: 'subscribe', requirements: ['id' => '\d+'])]
@@ -261,4 +310,5 @@ final class HangoutController extends AbstractController
         return $this->redirectToRoute('hangout_list');
 
     }
+
 }

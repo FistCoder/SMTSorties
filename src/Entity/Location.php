@@ -6,6 +6,7 @@ use App\Repository\LocationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LocationRepository::class)]
 class Location
@@ -16,9 +17,11 @@ class Location
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Place name can't be empty")]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Place address can't be empty")]
     private ?string $street = null;
 
     #[ORM\Column]
@@ -29,6 +32,7 @@ class Location
 
     #[ORM\ManyToOne(inversedBy: 'locationLst')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: "Must be a valid city!")]
     private ?City $city = null;
 
     /**

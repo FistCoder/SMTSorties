@@ -165,7 +165,7 @@ class AppFixtures extends Fixture
 
     public function addStates(ObjectManager $manager): void
     {
-        $states = ["CREATE","OPEN", "CLOSED", "IN_PROCESS", "FINISHED", "CANCELLED"];
+        $states = ["CREATE","OPEN", "CLOSED", "IN_PROCESS", "FINISHED", "CANCELLED", "ARCHIVED"];
 
         foreach ($states as $state) {
             $s = new State();
