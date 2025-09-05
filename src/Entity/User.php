@@ -74,6 +74,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $username = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $userPicture = null;
+
 
     public function __construct()
     {
@@ -278,6 +281,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUsername(string $username): static
     {
         $this->username = $username;
+
+        return $this;
+    }
+
+    public function getUserPicture(): ?string
+    {
+        return $this->userPicture;
+    }
+
+    public function setUserPicture(?string $userPicture): static
+    {
+        $this->userPicture = $userPicture;
 
         return $this;
     }

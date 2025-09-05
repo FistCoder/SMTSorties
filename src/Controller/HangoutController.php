@@ -8,6 +8,8 @@ use App\Form\FilterHangoutType;
 use App\Form\HangoutType;
 use App\Repository\HangoutRepository;
 use App\Repository\StateRepository;
+use App\Repository\UserRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -98,7 +100,6 @@ final class HangoutController extends AbstractController
          */
         $user = $this->getUser();
 
-
         $hangout = new Hangout();
         $form = $this->createForm(HangoutType::class, $hangout);
 
@@ -139,8 +140,44 @@ final class HangoutController extends AbstractController
     }
 
     #[Route('/cancel/{id}', name: 'cancel', requirements: ['id' => '\d+'])]
-    public function cancelHangout(int $id): Response
+    public function cancelHangout(
+        int $id,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        HangoutRepository $hangoutRepository,
+        StateRepository $stateRepository
+    ): Response
     {
+        $hangout = $hangoutRepository->find($id);
+        $state = $stateRepository->findOneBy(['label' => 'CANCELLED']);
+        $dateNow = new DateTimeImmutable();
+        dump($dateNow);
+
+        if (!$hangout) {
+            throw $this->createNotFoundException("Hangout not found");
+        }
+        if($request->isMethod('POST')) {
+
+            if ($hangout->getStartingDateTime() < $dateNow) {
+                $this->addFlash('', "la sortie " . $hangout->getName() . " a déjà commencé, elle ne peut pas être annulée");
+                return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
+            } else {
+            $cancelMotif = $request->request->get('cancelMotif', null);
+            $hangoutDetail = $hangout->getDetail();
+            $hangout->setDetail($hangoutDetail . '. Annulé : ' . $cancelMotif);
+            $hangout->setState($state);
+            $this->entityManager->persist($hangout);
+            $this->entityManager->flush();
+            $this->addFlash('success', "Sortie " . $hangout->getName() . " cancelled");
+
+            return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
+            }
+        }
+
+        return $this->render('hangout/cancel.html.twig', [
+            'hangout'=> $hangout
+        ]);
+
     }
 
     #[Route('/subscribe/{id}', name: 'subscribe', requirements: ['id' => '\d+'])]
@@ -226,4 +263,5 @@ final class HangoutController extends AbstractController
         return $this->redirectToRoute('hangout_list');
 
     }
+
 }
