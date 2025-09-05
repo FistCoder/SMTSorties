@@ -6,7 +6,9 @@
     {% block formTitle %} Mon profil {% endblock %}
     {% block buttonLabel %} Enregistrer {% endblock %}
 {% endembed %}
-    <input type="button" value="Annuler" onclick="location.href='modify'"/>
-
+    <!-- lien à modifier avec page d'accueil -->
+    <a onclick href="{{ path('user_detail', {'id' : app.user.id}) }}">
+        <button>Annuler</button>
+    </a>
 {% endblock %}
 
