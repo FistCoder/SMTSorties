@@ -52,11 +52,13 @@ final class UserController extends AbstractController
 
         if ($userForm->isSubmitted() && $userForm->isValid()) {
 
-            $image = $userForm->get('userPicture')->getData();
 
-            $newFileName = uniqid() . '.' . $image->guessExtension();
-            $image->move($this->getParameter('user_picture_dir'), $newFileName);
-            $user->setUserPicture($newFileName);
+            $image = $userForm->get('userPicture')->getData();
+            if ($image) {
+                $newFileName = uniqid() . '.' . $image->guessExtension();
+                $image->move($this->getParameter('user_picture_dir'), $newFileName);
+                $user->setUserPicture($newFileName);
+            }
 
             if ($userForm->get('confirmPassword')->getData()) {
                 $user->setPassword($this->userPasswordHasher->hashPassword($user, $userForm->get('confirmPassword')->getData()));
@@ -64,7 +66,7 @@ final class UserController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
             $this->addFlash("success", "User modified successfully");
-            return $this->redirectToRoute('user_modify', ['id' => $user->getId()]);
+            return $this->redirectToRoute('user_modify'); //modifier avec route vers détails
 
         }
         return $this->render('user/modify.html.twig', [
