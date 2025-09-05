@@ -139,48 +139,4 @@ final class HangoutController extends AbstractController
     {
     }
 
-    #[Route('/', name: 'update_list')]
-    public function updateState(
-        HangoutRepository $hangoutRepository,
-        StateRepository $stateRepository,
-
-        Request $request,
-        EntityManagerInterface $entityManager,
-    ): Response
-    {
-        $dateNow = new DateTimeImmutable();
-        $hangoutLst = $hangoutRepository->findAll();
-        foreach ($hangoutLst as $hangout) {
-            $dateEnd = clone $hangout->getStartingDateTime();
-            $lengthSeconds =  $hangout->getLength()->days * 24 * 60 * 60 +
-                        $hangout->getLength()->h * 60 * 60 +
-                        $hangout->getLength()->i * 60 +
-                        $hangout->getLength()->s;
-            ;
-            if ($hangout->getState()=== $stateRepository->findOneBy(['label' => 'CANCELLED'])) {
-
-                if ($dateEnd->modify('+ 1 month') > $dateNow) {
-                    $hangout->setState($stateRepository->findOneBy(['label' => 'ARCHIVED']));
-                }
-
-            } else {
-
-                if ($hangout->getLastSubmitDate() > $dateNow or $hangout->getSubscriberLst()->count() >= $hangout->getMaxParticipant()) {
-                    $state = $stateRepository->findOneBy(['label' => 'CLOSED']);
-                    $hangout->setState($state);
-                }
-                if ($hangout->getStartingDateTime() > $dateNow) {
-                    $hangout->setState($stateRepository->findOneBy(['label' => 'IN_PROCESS']));
-                }
-                if ($dateEnd->modify('+' .$lengthSeconds. 'seconds')> $dateNow) {
-                    $hangout->setState($stateRepository->findOneBy(['label' => 'FINISHED']));
-                }
-                if ($dateEnd->modify('+' .$lengthSeconds. 'seconds + 1 month' > $dateNow) {
-                    $hangout->setState($stateRepository->findOneBy(['label' => 'ARCHIVED']));
-                }
-            }
-        }
-
-    }
-
 }
