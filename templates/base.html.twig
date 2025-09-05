@@ -8,12 +8,16 @@
                 rel="stylesheet"
                 href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
         >
-        {% block stylesheets %}
-        {% endblock %}
+        <link
+                rel="stylesheet"
+                href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.colors.min.css"
+        >
+{#        {% block stylesheets %}#}
+{#        {% endblock %}#}
 
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-        {% endblock %}
+{#        {% block javascripts %}#}
+{#            {% block importmap %}{{ importmap('app') }}{% endblock %}#}
+{#        {% endblock %}#}
     </head>
     <body>
     <div class="container">
@@ -25,7 +29,9 @@
                 {% for label, messages in app.flashes %}
                     {% for message in messages %}
                         <div class="flash flash-{{ label }}">
+                            <h1 style="color: red">
                             {{ message }}
+                            </h1>
                         </div>
                     {% endfor %}
                 {% endfor %}
