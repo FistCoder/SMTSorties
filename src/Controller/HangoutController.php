@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Hangout;
+use App\Entity\Location;
 use App\Entity\User;
 use App\Form\FilterHangoutType;
 use App\Form\HangoutType;
+use App\Form\PlaceType;
 use App\Repository\HangoutRepository;
 use App\Repository\StateRepository;
 use App\Repository\UserRepository;
@@ -101,9 +103,15 @@ final class HangoutController extends AbstractController
         $user = $this->getUser();
 
         $hangout = new Hangout();
+        $place = new Location();
         $form = $this->createForm(HangoutType::class, $hangout);
 
+        $formPlace = $this->createForm(PlaceType::class, $place, [
+            'action' => $this->generateUrl('places_add')
+        ]);
+
         $form->handleRequest($request);
+        $formPlace->handleRequest($request);
 
         $request->query->get('cancelMotif', 'not_existing');
 
@@ -125,7 +133,8 @@ final class HangoutController extends AbstractController
         }
 
         return $this->render('hangout/add.html.twig', [
-            'form' => $form
+            'formHangout' => $form,
+            'formPlace' => $formPlace,
         ]);
     }
 
