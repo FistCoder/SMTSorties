@@ -153,8 +153,13 @@ final class HangoutController extends AbstractController
 
     #[IsGranted('POST_DELETE', 'hangout')]
     #[Route('/delete/{id}', name: 'delete', requirements: ['id' => '\d+'])]
-    public function deleteHangout(int $id, Hangout $hangout): Response
+    public function deleteHangout(int $id): Response
     {
+        $hangout = $this->hangoutRepository->find($id);
+        if (!$hangout) {
+            throw $this->createNotFoundException("La sortie n'existe pas.");
+        }
+
         $this->entityManager->remove($hangout);
         $this->entityManager->flush();
 
