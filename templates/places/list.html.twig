@@ -15,6 +15,7 @@
         </tr>
         </thead>
         <tbody>
+        {% if places not null %}
         {% for place in places %}
             {% set coords = [place.latitude, place.longitude] %}
             <tr>
@@ -31,6 +32,7 @@
                 </td>
             </tr>
         {% endfor %}
+        {% endif %}
         </tbody>
     </table>
 {% endblock %}
