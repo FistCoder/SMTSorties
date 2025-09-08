@@ -1,36 +1,37 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="container">
+    <div>
 
         <details style="background-color: #e2e2e2; padding: 6px; border-radius: 6px" class="filters accordion">
             <summary>Filtres</summary>
-            {{ form_start(filterForm) }}
-            <div>
-                {{ form_row(filterForm.campus) }}
+            <div style="padding: 6px; border-radius: 6px" >
+                {{ form_start(filterForm) }}
+                <div class="grid">
+                    <div>
+                        {{ form_row(filterForm.campus) }}
+                        {{ form_row(filterForm.name) }}
+                        {{ form_row(filterForm.start) }}
+                        {{ form_row(filterForm.end) }}
+                        {{ form_row(filterForm.state) }}
+                    </div>
+                    <div class="checkboxes">
+                        {{ form_row(filterForm.isOrganizer) }}
+                        {{ form_row(filterForm.isRegistered) }}
+                        {{ form_row(filterForm.isNotRegistered) }}
+                        {{ form_row(filterForm.isPast) }}<br>
+                        <button type="submit"  style="width: 40%">Rechercher</button>
+                    </div>
+                </div>
+                {{ form_end(filterForm) }}
             </div>
-            <div>
-                {{ form_row(filterForm.name) }}
-            </div>
-            <div>
-                {{ form_row(filterForm.start) }}
-                {{ form_row(filterForm.end) }}
-            </div>
-            <div>
-                {{ form_row(filterForm.state) }}
-            </div>
-
-            <div class="checkboxes">
-                {{ form_row(filterForm.isOrganizer) }}
-                {{ form_row(filterForm.isRegistered) }}
-                {{ form_row(filterForm.isNotRegistered) }}
-                {{ form_row(filterForm.isPast) }}
-            </div>
-
-            <input type="submit" value="Rechercher">
-
-            {{ form_end(filterForm) }}
         </details>
+
+        <div >
+            <a href="{{ path('hangout_add') }}">
+                <button >Créer une sortie</button>
+            </a>
+        </div>
 
         <h2>Résultats des sorties filtrées</h2>
 
@@ -50,9 +51,9 @@
             </thead>
             <tbody>
             {% if hangouts is empty %}
-                <tr>
-                    <td colspan="5">Aucune sortie trouvée.</td>
-                </tr>
+            <tr>
+                <td colspan="5">Aucune sortie trouvée.</td>
+            </tr>
             {% else %}
                 {% for hangout in hangouts %}
 
@@ -82,15 +83,10 @@
             </tr>
 
                 {% endfor %}
-            {% endif %}
+                {% endif %}
             </tbody>
         </table>
 
-        <div>
-
-            <a class="no-underline" href="{{ path('hangout_add') }}"><button class="contrast">Créer une sortie</button></a>
-
-        </div>
 
     </div>
 {% endblock %}
