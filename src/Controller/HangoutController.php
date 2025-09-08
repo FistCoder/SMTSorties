@@ -253,6 +253,7 @@ final class HangoutController extends AbstractController
             return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
         }
         if ($hangout->getState()->getLabel() == "OPEN") {
+            $this->addFlash('success', "Vous êtes inscrit à la sortie " . $hangout->getName());
             $hangout->addSubscriberLst($user);
         }
 

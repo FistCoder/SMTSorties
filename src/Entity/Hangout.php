@@ -113,13 +113,6 @@ class Hangout
             }
         }
 
-        // Ensure organizer is not already in the subscriber list
-        if ($this->organizer && $this->subscriberLst->contains($this->organizer)) {
-            $context->buildViolation('The organizer cannot be a subscriber')
-                ->atPath('subscriberLst')
-                ->addViolation();
-        }
-
         // Validate subscriber count against maxParticipant
         if ($this->maxParticipant && $this->subscriberLst->count() > $this->maxParticipant) {
             $context->buildViolation('Cannot have more subscribers than the maximum allowed participants ({{ limit }})')

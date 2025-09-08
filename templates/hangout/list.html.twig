@@ -82,7 +82,7 @@
                     {% if is_granted('POST_MODIFY', hangout) %}
                         <a href="{{ path('hangout_modify', {'id': hangout.id}) }}" class="contrast no-underline">Modifier</a>
                     {% endif %}
-                    {% if is_granted('POST_CANCEL') %}
+                    {% if is_granted('POST_CANCEL', hangout) %}
                         <a href="{{ path('hangout_cancel', {'id': hangout.id}) }}" class="contrast no-underline">Annuler</a>
                     {% endif %}
                 </td>

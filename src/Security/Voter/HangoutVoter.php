@@ -24,7 +24,7 @@ final class HangoutVoter extends Voter
 
     public const MODIFY = 'POST_MODIFY';
 
-    public const CANCEL = 'POST_CANCEL';
+    public const string CANCEL = 'POST_CANCEL';
 
     public const SUBSCRIBED = 'POST_SUBSCRIBED';
 
@@ -37,7 +37,7 @@ final class HangoutVoter extends Voter
     {
         // replace with your own logic
         // https://symfony.com/doc/current/security/voters.html
-        return in_array($attribute, [self::EDIT, self::DELETE, self::SUBSCRIBER, self::SUBSCRIBED, self::ORGANIZER, self::UNSUBSCRIBER, self::MODIFY])
+        return in_array($attribute, [self::EDIT, self::DELETE, self::SUBSCRIBER, self::SUBSCRIBED, self::ORGANIZER, self::UNSUBSCRIBER, self::MODIFY, self::CANCEL])
             && $subject instanceof \App\Entity\Hangout;
 
 
@@ -57,7 +57,7 @@ final class HangoutVoter extends Voter
          */
 
         if($subject->getId() ==39){
-            dump($attribute);
+
         }
 
 //      ...  (check conditions and return true to grant permission) ...
@@ -83,10 +83,11 @@ final class HangoutVoter extends Voter
                 return ($user === $subject->getOrganizer() && $subject->getState()->getLabel()==="CREATE" || $this->security->isGranted('ROLE_ADMIN'));
 
             case self::CANCEL:
-                return (
-                    ($user=== $subject->getOrganizer()
-                        && in_array($subject->getState()->getLabel(), ["OPEN", 'CLOSE'], true))
-                    |$this->security->isGranted('ROLE_ADMIN'));
+
+                return
+                    (($user=== $subject->getOrganizer()
+                        && in_array( $subject->getState()->getLabel() ==='OPEN')
+                    || $this->security->isGranted('ROLE_ADMIN'));
 
         }
         return false;
