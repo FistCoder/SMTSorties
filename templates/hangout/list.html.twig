@@ -64,7 +64,7 @@
                 <td>{{ hangout.subscriberLst|length }} / {{ hangout.maxParticipant }}</td>
                 <td>{{ hangout.campus.name }}</td>
                 <td>{{ hangout.state.label }}</td>
-                <td> {% if app.user in hangout.subscriberLst %}
+                <td> {% if is_granted('POST_SUBSCRIBED', hangout) %}
                     X
                     {% endif %}
                 </td>
@@ -72,11 +72,17 @@
                     <a href="{{ path('user_detail', {'id': hangout.organizer.id}) }}">{{ hangout.organizer.username }}</a>
                 </td>
                 <td>
-                    <a href="{{ path('hangout_subscribe', {'id': hangout.id}) }}" class="contrast no-underline">S'inscrire</a><br>
-                    <a href="{{ path('hangout_unsubscribe', {'id': hangout.id}) }}" class="contrast no-underline">Se désister</a>
-                    <a href="{{ path('hangout_detail', {'id': hangout.id}) }}" class="contrast no-underline">Afficher</a>
-                    {% if app.user.id ==  hangout.organizer.id %}
+                    {% if is_granted('POST_SUBSCRIBER', hangout) %}
+                        <a href="{{ path('hangout_subscribe', {'id': hangout.id}) }}" class="contrast no-underline">S'inscrire</a><br>
+                    {% endif %}
+                    {% if is_granted('POST_UNSUBSCRIBER', hangout) %}
+                        <a href="{{ path('hangout_unsubscribe', {'id': hangout.id}) }}" class="contrast no-underline">Se désister</a>
+                    {% endif %}
+                        <a href="{{ path('hangout_detail', {'id': hangout.id}) }}" class="contrast no-underline">Afficher</a>
+                    {% if is_granted('POST_MODIFY', hangout) %}
                         <a href="{{ path('hangout_modify', {'id': hangout.id}) }}" class="contrast no-underline">Modifier</a>
+                    {% endif %}
+                    {% if is_granted('POST_CANCEL', hangout) %}
                         <a href="{{ path('hangout_cancel', {'id': hangout.id}) }}" class="contrast no-underline">Annuler</a>
                     {% endif %}
                 </td>

@@ -16,6 +16,18 @@ final class HangoutVoter extends Voter
 
     public const DELETE = 'POST_DELETE';
 
+    public const SUBSCRIBER = 'POST_SUBSCRIBER';
+
+    public const UNSUBSCRIBER = 'POST_UNSUBSCRIBER';
+
+    public const ORGANIZER = 'POST_ORGANIZER';
+
+    public const MODIFY = 'POST_MODIFY';
+
+    public const string CANCEL = 'POST_CANCEL';
+
+    public const SUBSCRIBED = 'POST_SUBSCRIBED';
+
     public function __construct(private Security $security)
     {
 
@@ -25,8 +37,10 @@ final class HangoutVoter extends Voter
     {
         // replace with your own logic
         // https://symfony.com/doc/current/security/voters.html
-        return in_array($attribute, [self::EDIT, self::DELETE])
+        return in_array($attribute, [self::EDIT, self::DELETE, self::SUBSCRIBER, self::SUBSCRIBED, self::ORGANIZER, self::UNSUBSCRIBER, self::MODIFY, self::CANCEL])
             && $subject instanceof \App\Entity\Hangout;
+
+
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
@@ -42,11 +56,39 @@ final class HangoutVoter extends Voter
          * @var Hangout $subject
          */
 
+        if($subject->getId() ==39){
+
+        }
+
 //      ...  (check conditions and return true to grant permission) ...
         switch ($attribute) {
             case self::DELETE:
             case self::EDIT:
                 return ($user === $subject->getOrganizer() || $this->security->isGranted('ROLE_ADMIN'));
+
+            case self::SUBSCRIBER:
+                return ($subject->getState()->getLabel() === ("OPEN") && !$subject->getSubscriberLst()->contains($user));
+
+            case self::UNSUBSCRIBER:
+                return ($subject->getState()->getLabel() ===("OPEN") && $subject->getSubscriberLst()->contains($user));
+
+            case self::SUBSCRIBED:
+                //dd($subject->getSubscriberLst()->contains($user));
+                return ($subject->getSubscriberLst()->contains($user));
+
+            case self::ORGANIZER:
+                return($user===$subject->getOrganizer());
+
+            case self::MODIFY:
+                return ($user === $subject->getOrganizer() && $subject->getState()->getLabel()==="CREATE" || $this->security->isGranted('ROLE_ADMIN'));
+
+            case self::CANCEL:
+
+                return
+                    (($user=== $subject->getOrganizer()
+                        && in_array( $subject->getState()->getLabel() ==='OPEN')
+                    || $this->security->isGranted('ROLE_ADMIN'));
+
         }
         return false;
     }
