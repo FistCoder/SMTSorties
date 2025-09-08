@@ -13,6 +13,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 #[ORM\Entity(repositoryClass: HangoutRepository::class)]
 class Hangout
 {
+    public const HANGOUT_PER_PAGE = 10;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

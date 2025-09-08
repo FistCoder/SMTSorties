@@ -32,7 +32,7 @@
                     <span>
                     Nr des places :
                     </span>
-                        <h6>{{ hangout.maxParticipant }}</h6>
+                            <h6>{{ hangout.maxParticipant }}</h6>
                         </div>
                         <div>
                             <span>Durée :</span>
@@ -43,6 +43,15 @@
                         <span>Description et infos :</span>
                         <h6>{{ hangout.detail }}</h6>
                     </div>
+
+                    <div>
+                    {% if is_granted('POST_EDIT', hangout ) %}
+                        <a href="{{ path('hangout_modify', {'id' : hangout.id}) }}">
+                            <button>Modifier</button>
+                        </a>
+                    {% endif %}
+                    </div>
+
                 </div>
                 <div>
                     <div class="grid">

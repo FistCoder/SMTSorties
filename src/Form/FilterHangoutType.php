@@ -7,6 +7,7 @@ use App\Entity\Hangout;
 use App\Entity\Location;
 use App\Entity\State;
 use App\Entity\User;
+use App\Form\Models\FiltresModel;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -52,22 +53,22 @@ class FilterHangoutType extends AbstractType
             ->add('isOrganizer', CheckboxType::class, [
                 'required' => false,
                 'label' => 'Sorties dont je suis l\'organisateur/trice',
-                'mapped' => false,
+                'mapped' => true,
             ])
             ->add('isRegistered', CheckboxType::class, [
                 'required' => false,
                 'label' => 'Sorties auxquelles je suis inscrit/e',
-                'mapped' => false,
+                'mapped' => true,
             ])
             ->add('isNotRegistered', CheckboxType::class, [
                 'required' => false,
                 'label' => 'Sorties auxquelles je ne suis pas inscrit/e',
-                'mapped' => false,
+                'mapped' => true,
             ])
             ->add('isPast', CheckboxType::class, [
                 'required' => false,
                 'label' => 'Sorties passées',
-                'mapped' => false,
+                'mapped' => true,
             ]);
         ;
     }
@@ -75,7 +76,7 @@ class FilterHangoutType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => null, // Pour avoir un tableau associatif et non une entité
+            'data_class' => FiltresModel::class, // Liaison vers l'entité ou le model qui servira aux validation et a la maintenance du code
         ]);
     }
 }
