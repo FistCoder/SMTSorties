@@ -86,7 +86,7 @@ final class HangoutVoter extends Voter
 
                 return
                     (($user=== $subject->getOrganizer()
-                        && in_array( $subject->getState()->getLabel() ==='OPEN')
+                        && in_array( $subject->getState()->getLabel(), ["CLOSED", "OPEN"], true))
                     || $this->security->isGranted('ROLE_ADMIN'));
 
         }

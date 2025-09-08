@@ -38,10 +38,11 @@
                                     type="text" id="cancelMotif" name="cancelMotif">
                             <button onclick="return confirm('Voulez-vous vraiment annuler la sortie {{ hangout.name }}?')" type="submit">Enregistrer</button>
                             </label>
-                            <a onclick href="{{ path('hangout_detail', {'id' : app.user.id}) }}">
-                                <button>Annuler</button>
-                            </a>
                         </form>
+                            <a onclick href="{{ path('hangout_detail', {'id' : hangout.id}) }}">
+                                <button>Annuler l'annulation</button>
+                            </a>
+
                     </div>
                 </div>
 
