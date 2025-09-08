@@ -130,7 +130,7 @@ class AppFixtures extends Fixture
                 ->setDetail($faker->paragraph)
                 ->setMaxParticipant($faker->randomNumber(2))
                 ->setLength($faker->dateTime("now"))
-                ->setStartingDateTime($faker->dateTimeBetween('now', '+1 month'))
+                ->setStartingDateTime($faker->dateTimeBetween('now', '+2 month'))
                 ->setState($faker->randomElement($states))
                 ->setLocation($faker->randomElement($locations))
                 ->setCampus($faker->randomElement($campuses))
@@ -138,7 +138,7 @@ class AppFixtures extends Fixture
                 ->addSubscriberLst($faker->randomElement($users))
                 ->addSubscriberLst($faker->randomElement($users));
 
-            $hangout->setLastSubmitDate($faker->dateTimeBetween($hangout->getStartingDateTime(), '+2 months'));
+            $hangout->setLastSubmitDate($faker->dateTimeBetween($hangout->getStartingDateTime(), '+1 months'));
             $manager->persist($hangout);
         }
         $manager->flush();

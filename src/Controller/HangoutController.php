@@ -12,6 +12,7 @@ use App\Form\PlaceType;
 use App\Repository\HangoutRepository;
 use App\Repository\StateRepository;
 use App\Repository\UserRepository;
+use App\Utils\HangoutService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,13 +34,15 @@ final class HangoutController extends AbstractController
         private readonly StateRepository        $stateRepository,
         private readonly HangoutRepository      $hangoutRepository,
         private readonly EntityManagerInterface $entityManager,
-        private readonly ValidatorInterface     $validator)
+        private readonly ValidatorInterface     $validator,
+        private readonly HangoutService $hangoutService
+    )
     {
     }
 
 
     #[Route('/', name: 'list')]
-    public function listHangouts(Request $request): Response
+    public function listHangouts(Request $request, HangoutService $hangoutService): Response
     {
 
         /**
@@ -53,6 +56,8 @@ final class HangoutController extends AbstractController
             // Gère le cas utilisateur non connecté (redirige, exception, etc.)
             throw $this->createAccessDeniedException('Vous devez être connecté');
         }
+
+        $majHangoutState = $hangoutService->updateState($this->hangoutRepository,  $this->stateRepository);
 
 //creation du form - et je lui passe le model
         $filterForm = $this->createForm(FilterHangoutType::class, $filtersModel);
@@ -81,8 +86,7 @@ final class HangoutController extends AbstractController
     }
 
 
-    #[
-        Route('/detail/{id}', name: 'detail', requirements: ['id' => '\d+'])]
+    #[Route('/detail/{id}', name: 'detail', requirements: ['id' => '\d+'])]
     public function detailHangout(int $id): Response
     {
         $hangout = $this->hangoutRepository->find($id);
@@ -103,6 +107,7 @@ final class HangoutController extends AbstractController
          * @var User $user
          */
         $user = $this->getUser();
+
 
         $hangout = new Hangout();
         $place = new Location();
