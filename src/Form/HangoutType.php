@@ -33,7 +33,9 @@ class HangoutType extends AbstractType
             ->add('save', SubmitType::class,
                 ['label' => 'Enregistrer'])
             ->add('publish', SubmitType::class,
-                ['label' => 'Publier']);
+                ['label' => 'Publier'])
+            ->add('delete', SubmitType::class,['label' => 'Supprimer'])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

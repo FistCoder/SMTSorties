@@ -2,6 +2,7 @@
     <ul>
         {% if app.user %}
 
+        <li><a href="{{ path('hangout_list') }}">Acceuil</a></li>
         <li><a href="{{ path('user_modify') }}">Mon profil</a></li>
         <li><a href="{{ path('app_logout') }}">Se déconnecter</a></li>
         {% endif %}

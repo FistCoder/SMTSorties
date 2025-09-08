@@ -80,7 +80,7 @@ final class AdminController extends AbstractController
     #[Route('/users', name: 'users_List')]
     public function usersLst(): Response
     {
-        return $this->render('/users.html.twig', [
+        return $this->render('admin/users/list.html.twig', [
 
         ]);
     }

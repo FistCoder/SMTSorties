@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Utils\HangoutService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,13 +19,16 @@ class LoginController extends AbstractController
         return $this->redirectToRoute('hangout_list');
     }
     #[Route(path: '/login', name: 'app_login')]
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    public function login(AuthenticationUtils $authenticationUtils, HangoutService $hangoutService): Response
     {
         // get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
 
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
+
+        $hangoutService->updateState();
+
 
         return $this->render('login/login.html.twig', [
             'last_username' => $lastUsername,
