@@ -65,21 +65,23 @@ final class HangoutController extends AbstractController
 //recuperation des donées du formulaire de filtres remplis et ajout de ces données dans le tableau de filtre qui seras envoyer au repository
         $hangouts = [];
 
-        if ($filterForm->isSubmitted() && $filterForm->isValid()) {
-            $filters = $filterForm->getData();
+        //if ($filterForm->isSubmitted() && $filterForm->isValid()) {
+            //$filters = $filterForm->getData();
 
-            $hangouts = $this->hangoutRepository->findFilteredEvent($user, $filters);
-        } else {
-            // Par défaut (pas de filtre), recupère tout ou selon ta logique
-            $hangouts = $this->hangoutRepository->findFilteredEvent($user, new FiltresModel());
-        }
-//        dump($filters, $hangouts);
+            $hangouts = $this->hangoutRepository->findFilteredEvent($user, $filtersModel);
+//            return $this->render('hangout/list.html.twig', [
+//                'hangouts' => $hangouts,
+//                'filterForm' => $filterForm
+//            ]);
+//        } else {
+//            // Par défaut (pas de filtre), recupère tout ou selon ta logique
+//            $hangouts = $this->hangoutRepository->findFilteredEvent($user, new FiltresModel());
+//        }
 
 
         return $this->render('hangout/list.html.twig', [
             'hangouts' => $hangouts,
-            'filterForm' => $filterForm,
-            'filtersApplied' => $filterForm->isSubmitted(),
+            'filterForm' => $filterForm
         ]);
     }
 
@@ -143,7 +145,7 @@ final class HangoutController extends AbstractController
         ]);
     }
 
-    #[IsGranted('POST_EDIT', 'hangout')]
+    #[IsGranted('POST_MODIFY', 'hangout')]
     #[Route('/modify/{id}', name: 'modify', requirements: ['id' => '\d+'])]
     public function modifyHangout(Request $request, Hangout $hangout): Response
     {
@@ -189,10 +191,12 @@ final class HangoutController extends AbstractController
 //        return $this->redirectToRoute('hangout_list');
 //    }
 
+    #[ISGranted('POST_CANCEL', 'hangout')]
     #[Route('/cancel/{id}', name: 'cancel', requirements: ['id' => '\d+'])]
     public function cancelHangout(
         int $id,
         Request $request,
+        Hangout $hangout,
         EntityManagerInterface $entityManager,
         HangoutRepository $hangoutRepository,
         StateRepository $stateRepository
@@ -230,8 +234,9 @@ final class HangoutController extends AbstractController
 
     }
 
+    #[isGranted('POST_SUBSCRIBER', 'hangout')]
     #[Route('/subscribe/{id}', name: 'subscribe', requirements: ['id' => '\d+'])]
-    public function subscribeToHangout(int $id): Response
+    public function subscribeToHangout(int $id, Hangout $hangout): Response
     {
         $hangout = $this->hangoutRepository->find($id);
         /**
@@ -268,8 +273,12 @@ final class HangoutController extends AbstractController
         return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
     }
 
+    #[IsGranted('POST_UNSUBSCRIBER', 'hangout')]
     #[Route('/unsubscribe/{id}', name: 'unsubscribe', requirements: ['id' => '\d+'])]
-    public function unsubscribeFromHangout(int $id, Request $request): Response
+    public function unsubscribeFromHangout(
+        int $id,
+        Request $request,
+        Hangout $hangout): Response
     {
         /**
          * @var User $user

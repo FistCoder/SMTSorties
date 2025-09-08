@@ -32,7 +32,7 @@ class HangoutRepository extends ServiceEntityRepository
             ->addorderBy('state.id', 'ASC');
 
 
-        if (!empty($filters->getCampus() !== null)) {
+        if ($filters->getCampus()) {
             $qb->andWhere('h.campus = :campus')
                 ->setParameter('campus', $filters->getCampus());
         }
