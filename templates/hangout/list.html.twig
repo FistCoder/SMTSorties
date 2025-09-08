@@ -27,7 +27,7 @@
                 {{ form_row(filterForm.isPast) }}
             </div>
 
-            <input type="button" value="Rechercher">
+            <input type="submit" value="Rechercher">
 
             {{ form_end(filterForm) }}
         </details>
@@ -39,8 +39,11 @@
             <tr>
                 <th>Nom</th>
                 <th>Date de début</th>
+                <th>Date limite d'inscription</th>
+                <th>nombre de participants</th>
                 <th>Campus</th>
                 <th>État</th>
+                <th>Inscrit</th>
                 <th>Organisateur</th>
                 <th>Action</th>
             </tr>
@@ -52,16 +55,32 @@
                 </tr>
             {% else %}
                 {% for hangout in hangouts %}
-                    <tr>
-                        <td>{{ hangout.name }}</td>
-                        <td>{{ hangout.startingDateTime|date('d/m/Y H:i') }}</td>
-                        <td>{{ hangout.campus.name }}</td>
-                        <td>{{ hangout.state.label }}</td>
-                        <td>{{ hangout.organizer.firstname }}</td>
-                        <td>
-                            <a href="{{ path('hangout_subscribe', {'id': hangout.id}) }}" class="contrast no-underline">S'inscrire</a><br>
-                            <a href="{{ path('hangout_unsubscribe', {'id': hangout.id}) }}" class="contrast no-underline">Se désister</a>
-                        </td>
+
+            <tr>
+                <td>{{ hangout.name }}</td>
+                <td>{{ hangout.startingDateTime|date('d/m/Y H:i') }}</td>
+                <td>{{ hangout.lastSubmitDate|date('d/m/Y H:i') }}</td>
+                <td>{{ hangout.subscriberLst|length }} / {{ hangout.maxParticipant }}</td>
+                <td>{{ hangout.campus.name }}</td>
+                <td>{{ hangout.state.label }}</td>
+                <td> {% if app.user in hangout.subscriberLst %}
+                    X
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ path('user_detail', {'id': hangout.organizer.id}) }}">{{ hangout.organizer.username }}</a>
+                </td>
+                <td>
+                    <a href="{{ path('hangout_subscribe', {'id': hangout.id}) }}" class="contrast no-underline">S'inscrire</a><br>
+                    <a href="{{ path('hangout_unsubscribe', {'id': hangout.id}) }}" class="contrast no-underline">Se désister</a>
+                    <a href="{{ path('hangout_detail', {'id': hangout.id}) }}" class="contrast no-underline">Afficher</a>
+                    {% if app.user.id ==  hangout.organizer.id %}
+                        <a href="{{ path('hangout_modify', {'id': hangout.id}) }}" class="contrast no-underline">Modifier</a>
+                        <a href="{{ path('hangout_cancel', {'id': hangout.id}) }}" class="contrast no-underline">Annuler</a>
+                    {% endif %}
+                </td>
+            </tr>
+
                 {% endfor %}
             {% endif %}
             </tbody>
