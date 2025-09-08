@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,7 +17,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 final class UserController extends AbstractController
 {
 
-    public function __construct(private UserPasswordHasherInterface $userPasswordHasher)
+    public function __construct(private readonly UserPasswordHasherInterface $userPasswordHasher)
     {
     }
 
@@ -40,9 +41,10 @@ final class UserController extends AbstractController
     ): Response
 
     {
-        $tempUser = $this->getUser();
-
-        $user = $userRepository->findOneBy(['email' => $tempUser->getUserIdentifier()]);
+        /**
+         * @var User $user
+         */
+        $user = $this->getUser();
 
         if (!$user) {
             throw $this->createNotFoundException('User not found');
