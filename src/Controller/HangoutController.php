@@ -35,14 +35,13 @@ final class HangoutController extends AbstractController
         private readonly HangoutRepository      $hangoutRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly ValidatorInterface     $validator,
-        private readonly HangoutService $hangoutService
     )
     {
     }
 
 
     #[Route('/', name: 'list')]
-    public function listHangouts(Request $request, HangoutService $hangoutService): Response
+    public function listHangouts(Request $request): Response
     {
 
         /**
@@ -57,7 +56,6 @@ final class HangoutController extends AbstractController
             throw $this->createAccessDeniedException('Vous devez être connecté');
         }
 
-        $majHangoutState = $hangoutService->updateState($this->hangoutRepository,  $this->stateRepository);
 
 //creation du form - et je lui passe le model
         $filterForm = $this->createForm(FilterHangoutType::class, $filtersModel);

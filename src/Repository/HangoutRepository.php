@@ -91,8 +91,7 @@ class HangoutRepository extends ServiceEntityRepository
         $query->setMaxResults($limit);
         $query->setFirstResult($offset);
 
-        $paginator = new Paginator($query);
-        return $paginator;
+        return new Paginator($query);
     }
 
 

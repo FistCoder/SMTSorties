@@ -13,31 +13,22 @@ use Symfony\Component\HttpFoundation\Response;
 class HangoutService
 {
 
-    public function __construct(private EntityManagerInterface $entityManager)
+    public function __construct(private readonly EntityManagerInterface $entityManager,
+                                private readonly HangoutRepository $hangoutRepository,
+                                private readonly StateRepository $stateRepository)
     {
 
     }
 
-    public function updateState(
-
-        HangoutRepository $hangoutRepository,
-        StateRepository $stateRepository,
-        //Request $request,
-        //EntityManagerInterface $entityManager,
-    ): void
+    public function updateState(): void
     {
-        dump("test state update");
         $dateNow = new DateTimeImmutable();
-        $hangoutList = $hangoutRepository->findAll();
-        $stateList = $stateRepository->findAll();
-        dump($stateList);
+        $hangoutList = $this->hangoutRepository->findAll();
+        $stateList = $this->stateRepository->findAll();
 
         foreach ($stateList as $state) {
             $states[$state->getLabel()] = $state;
         }
-        dump($states);
-        //$states['CLOSED'] =
-
 
         foreach ($hangoutList as $hangout) {
             $dateEnd = clone $hangout->getStartingDateTime();
@@ -46,13 +37,10 @@ class HangoutService
             $minutes = (int) $hangout->getLength()->format('i');
             $totalMinutes = $hours * 60 + $minutes;
 
-            dump($totalMinutes);
-
             if ($hangout->getState()->getLabel()=== 'CANCELLED'){
 
                 if ($dateEnd->modify('+ 1 month') < $dateNow) {
                     $hangout->setState($states['ARCHIVED']);
-                    dump($dateEnd);
                 }
 
             } else {
@@ -65,11 +53,9 @@ class HangoutService
                 }
                 if ($dateEnd->modify('+' .$totalMinutes. 'minutes')< $dateNow) {
                     $hangout->setState($states['FINISHED']);
-                    dump($dateEnd);
                 }
                 if ($dateEnd->modify('+' .$totalMinutes. 'minutes + 1 month') < $dateNow) {
                     $hangout->setState($states['ARCHIVED']);
-                    dump($dateEnd);
                 }
             }
             $this->entityManager->persist($hangout);
