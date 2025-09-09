@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Campus;
 use App\Entity\City;
 use App\Entity\User;
+use App\Form\CityType;
 use App\Form\UserType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,7 +22,10 @@ final class AdminController extends AbstractController
 
 
 
-    public function __construct(private readonly EntityManagerInterface $entityManager, private readonly UserPasswordHasherInterface $userPasswordHasher)
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly UserPasswordHasherInterface $userPasswordHasher
+    )
     {
     }
 
@@ -39,32 +43,65 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/cities', name: 'cities_List')]
+    #[Route('/cities', name: 'cities_list')]
     public function citiesLst(): Response
     {
+        $cities = $this->entityManager->getRepository(City::class)->findAll();
         return $this->render('/admin/cities/list.html.twig', [
-
+            'cities' => $cities,
+            'citiesCount' => count($cities),
         ]);
     }
 
     #[Route('/cities/add', name: 'cities_add')]
-    public function addCity(): Response
+    public function addCity(Request $request): Response
     {
-        return $this->render('/admin/cities/add.html.twig', [
+        $city = new City();
+        $formCity = $this->createForm(CityType::class, $city);
+        $formCity->handleRequest($request);
 
+        if ($formCity->isSubmitted() && $formCity->isValid()) {
+            $this->entityManager->persist($city);
+            $this->entityManager->flush();
+            return $this->redirectToRoute('admin_cities_list');
+        }
+
+        return $this->render('/admin/cities/add.html.twig', [
+            'formCity' => $formCity,
         ]);
     }
 
     #[Route('/cities/delete/{id}', name: 'cities_delete', requirements: ['id' => '\d+'])]
     public function deleteCity(int $id): Response
     {
-        return $this->render('/admin/cities/delete.html.twig', []);
+        $city = $this->entityManager->getRepository(City::class)->find($id);
+        if (!$city) {
+            throw $this->createNotFoundException();
+        }
+        $this->entityManager->remove($city);
+        $this->entityManager->flush();
+        return $this->redirectToRoute('admin_cities_list');
     }
 
     #[Route('/cities/modify/{id}', name: 'cities_modify', requirements: ['id' => '\d+'])]
-    public function modifyCities(int $id): Response
+    public function modifyCities(int $id, Request $request): Response
     {
-        return $this->render('/admin/cities/modify.html.twig', []);
+        $city = $this->entityManager->getRepository(City::class)->find($id);
+        if (!$city) {
+            throw $this->createNotFoundException();
+        }
+        $formCity = $this->createForm(CityType::class, $city);
+        $formCity->handleRequest($request);
+
+        if ($formCity->isSubmitted() && $formCity->isValid()) {
+            $this->entityManager->persist($city);
+            $this->entityManager->flush();
+            return $this->redirectToRoute('admin_cities_list');
+        }
+
+        return $this->render('/admin/cities/modify.html.twig', [
+            'formCity' => $formCity,
+        ]);
     }
 
 

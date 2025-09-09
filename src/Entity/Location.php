@@ -38,7 +38,7 @@ class Location
     /**
      * @var Collection<int, Hangout>
      */
-    #[ORM\OneToMany(targetEntity: Hangout::class, mappedBy: 'location')]
+    #[ORM\OneToMany(targetEntity: Hangout::class, mappedBy: 'location',orphanRemoval: true)]
     private Collection $hangoutLst;
 
     public function __construct()
