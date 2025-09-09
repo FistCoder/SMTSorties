@@ -85,6 +85,10 @@
                     {% if is_granted('POST_CANCEL', hangout) %}
                         <a href="{{ path('hangout_cancel', {'id': hangout.id}) }}" class="contrast no-underline">Annuler</a>
                     {% endif %}
+                    {% if is_granted('POST_PUBLISH', hangout) %}
+                        <a href="{{ path('hangout_cancel', {'id': hangout.id}) }}" class="contrast no-underline">Publier</a>
+                            <button onclick="return confirm('Voulez-vous vraiment publier la sortie {{ hangout.name }}?')" type="submit">Enregistrer</button>
+                    {% endif %}
                 </td>
             </tr>
 

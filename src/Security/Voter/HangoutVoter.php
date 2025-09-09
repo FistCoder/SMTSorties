@@ -3,6 +3,7 @@
 namespace App\Security\Voter;
 
 use App\Entity\Hangout;
+use DateTimeImmutable;
 use phpDocumentor\Reflection\DocBlock\Tags\Throws;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -28,6 +29,10 @@ final class HangoutVoter extends Voter
 
     public const SUBSCRIBED = 'POST_SUBSCRIBED';
 
+    public const PUBLISH = 'POST_PUBLISH';
+
+
+
     public function __construct(private Security $security)
     {
 
@@ -37,7 +42,7 @@ final class HangoutVoter extends Voter
     {
         // replace with your own logic
         // https://symfony.com/doc/current/security/voters.html
-        return in_array($attribute, [self::EDIT, self::DELETE, self::SUBSCRIBER, self::SUBSCRIBED, self::ORGANIZER, self::UNSUBSCRIBER, self::MODIFY, self::CANCEL])
+        return in_array($attribute, [self::EDIT, self::DELETE, self::SUBSCRIBER, self::SUBSCRIBED, self::ORGANIZER, self::UNSUBSCRIBER, self::MODIFY, self::CANCEL, self::PUBLISH])
             && $subject instanceof \App\Entity\Hangout;
 
 
@@ -46,6 +51,7 @@ final class HangoutVoter extends Voter
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
     {
         $user = $token->getUser();
+        $dateNow = new DateTimeImmutable();
 
         // if the user is anonymous, do not grant access
         if (!$user instanceof UserInterface) {
@@ -88,6 +94,9 @@ final class HangoutVoter extends Voter
                     (($user=== $subject->getOrganizer()
                         && in_array( $subject->getState()->getLabel(), ["CLOSED", "OPEN"], true))
                     || $this->security->isGranted('ROLE_ADMIN'));
+
+            case self::PUBLISH:
+                return ($subject->getState()->getLabel() === "CREATE" &&  $subject->getLastSubmitDate()< $dateNow && $user===$subject->getOrganizer());
 
         }
         return false;
