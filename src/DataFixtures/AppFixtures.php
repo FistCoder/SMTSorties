@@ -124,7 +124,7 @@ class AppFixtures extends Fixture
 
 
 
-        for ($i = 0; $i <= 10; $i++) {
+        for ($i = 0; $i <= 30; $i++) {
             $hangout = new Hangout();
             $hangout->setName($faker->firstName.'_Hangout')
                 ->setDetail($faker->paragraph)
@@ -138,7 +138,7 @@ class AppFixtures extends Fixture
                 ->addSubscriberLst($faker->randomElement($users))
                 ->addSubscriberLst($faker->randomElement($users));
 
-            $hangout->setLastSubmitDate($faker->dateTimeBetween( '-1 months',$hangout->getStartingDateTime()));
+            $hangout->setLastSubmitDate($faker->dateTimeBetween( '-1 months', $hangout->getStartingDateTime()));
             $manager->persist($hangout);
         }
         $manager->flush();
