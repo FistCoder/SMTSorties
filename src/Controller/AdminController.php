@@ -105,7 +105,7 @@ final class AdminController extends AbstractController
     }
 
 
-    #[Route('/campus', name: 'campus_List')]
+    #[Route('/campus', name: 'campus_list')]
     public function campusLst(): Response
     {
         return $this->render('/admin/campus/list.html.twig', [
@@ -134,11 +134,13 @@ final class AdminController extends AbstractController
     }
 
 
-    #[Route('/users', name: 'users_List')]
+    #[Route('/users', name: 'users_list')]
     public function usersLst(): Response
     {
-        return $this->render('admin/users/list.html.twig', [
-
+        $users = $this->entityManager->getRepository(User::class)->findAll();
+        return $this->render('/admin/users/list.html.twig', [
+            'users' => $users,
+            'usersCount' => count($users),
         ]);
     }
 
@@ -198,6 +200,35 @@ final class AdminController extends AbstractController
     public function modifyUsers(int $id): Response
     {
         return $this->render('/admin/users/modify.html.twig', []);
+    }
+
+    #[Route('/users/activate/{id}', name: 'users_activate', requirements: ['id' => '\d+'])]
+    public function activateUsers(int $id): Response
+    {
+        /**
+         * @var User $user
+         */
+        $user = $this->entityManager->getRepository(User::class)->find($id);
+        if (!$user) {
+            throw $this->createNotFoundException('User not found');
+        }
+        $user->setActive(true);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+       return $this->redirectToRoute('admin_users_list');
+    }
+
+    #[Route('/users/deactivate/{id}', name: 'users_deactivate', requirements: ['id' => '\d+'])]
+    public function deactivateUsers(int $id): Response
+    {
+        $user = $this->entityManager->getRepository(User::class)->find($id);
+        if (!$user) {
+            throw $this->createNotFoundException('User not found');
+        }
+        $user->setActive(false);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        return $this->redirectToRoute('admin_users_list');
     }
 
 }

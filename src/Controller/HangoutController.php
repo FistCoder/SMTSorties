@@ -122,7 +122,6 @@ final class HangoutController extends AbstractController
         $request->query->get('cancelMotif', 'not_existing');
 
         if ($form->isSubmitted() && $form->isValid()) {
-            ;
             if ($form->get('save')->isClicked()) {
                 $hangout->setState($this->stateRepository->findOneBy(['label' => 'CREATE']));
             } elseif ($form->get('publish')->isClicked()) {
