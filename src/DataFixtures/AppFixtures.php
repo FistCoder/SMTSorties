@@ -66,17 +66,6 @@ class AppFixtures extends Fixture
             ->setRoles(['ROLE_ADMIN']);
         $manager->persist($admin);
 
-        $pswForgotUser = new User();
-        $pswForgotUser->setUsername('pswforgot')
-            ->setFirstname('psw')
-            ->setLastname('forgot')
-            ->setEmail('soifiaouir@gmail.com')
-            ->setPassword($this->userPasswordHasher->hashPassword($user, '1234'))
-            ->setPhone('0123456789')
-            ->setActive(true)
-            ->setCampus($faker->randomElement($campuses))
-            ->setRoles([]);
-        $manager->persist($pswForgotUser);
 
         for ($i = 0; $i < 10; $i++) {
             $fakeUser = new User();
