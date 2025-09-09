@@ -17,50 +17,21 @@
             href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.colors.min.css"
     >
 
-
-<<<<<<< HEAD
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-        {% endblock %}
-    </head>
-    <body>
-    <div class="container">
-        <header>
-            <div class="header-div">
-                <img src="{{ asset('img/logoMST.png') }}" alt="logo" width="100px">
-            </div>
-                {% include 'views/menu/nav.html.twig' %}
-                {% for label, messages in app.flashes %}
-                    {% for message in messages %}
-                        <div class="flash flash-{{ label }}">
-                            <h1>
-                            {{ message }}
-                            </h1>
-                        </div>
-                    {% endfor %}
-                {% endfor %}
-        </header>
-        <main>{% block body %}{% endblock %}</main>
-        <footer>
-=======
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
     {% endblock %}
 </head>
->>>>>>> 8dffa9b56d6881db36b2fc0d30b979d5788b8f40
-
 <body>
 <div class="container">
     <header>
         <div class="header-div">
-
             <img src="{{ asset('img/logoMST.png') }}" alt="logo" width="100px">
         </div>
         {% include 'views/menu/nav.html.twig' %}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
                 <div class="flash flash-{{ label }}">
-                    <h1 style="color: red">
+                    <h1>
                         {{ message }}
                     </h1>
                 </div>
@@ -69,7 +40,6 @@
     </header>
     <main>{% block body %}{% endblock %}</main>
     <footer>
-
     </footer>
 </div>
 </body>

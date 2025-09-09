@@ -69,12 +69,12 @@ final class HangoutController extends AbstractController
         $totalHangout = $this->hangoutRepository->count();
         $maxPages =ceil($totalHangout / Hangout::HANGOUT_PER_PAGE);
 
-        if ($page < 1) {
-            return $this->redirectToRoute('hangout_list', ['page' => 1]);
-        }
-        if ($page > $maxPages) {
-            return $this->redirectToRoute('hangout_list', ['page' => $maxPages]);
-        }
+//        if ($page < 1) {
+//            return $this->redirectToRoute('hangout_list', ['page' => 1]);
+//        }
+//        if ($page > $maxPages) {
+//            return $this->redirectToRoute('hangout_list', ['page' => $maxPages]);
+//        }
 
         return $this->render('hangout/list.html.twig', [
             'hangouts' => $hangouts,
