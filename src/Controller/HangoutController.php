@@ -26,7 +26,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use function PHPUnit\Framework\throwException;
 
 
-
 #[Route('/hangouts', name: 'hangout_')]
 final class HangoutController extends AbstractController
 {
@@ -58,7 +57,7 @@ final class HangoutController extends AbstractController
         }
 
 
-//creation du form - et je lui passe le model
+        //creation du form - et je lui passe le model
         $filterForm = $this->createForm(FilterHangoutType::class, $filtersModel);
         $filterForm->handleRequest($request);
 
@@ -222,12 +221,17 @@ final class HangoutController extends AbstractController
     #[ISGranted('POST_CANCEL', 'hangout')]
     #[Route('/cancel/{id}', name: 'cancel', requirements: ['id' => '\d+'])]
     public function cancelHangout(
+<<<<<<< HEAD
         int $id,
         Request $request,
         Hangout $hangout,
+=======
+        int                    $id,
+        Request                $request,
+>>>>>>> 8dffa9b56d6881db36b2fc0d30b979d5788b8f40
         EntityManagerInterface $entityManager,
-        HangoutRepository $hangoutRepository,
-        StateRepository $stateRepository
+        HangoutRepository      $hangoutRepository,
+        StateRepository        $stateRepository
     ): Response
     {
         $hangout = $hangoutRepository->find($id);
@@ -238,26 +242,26 @@ final class HangoutController extends AbstractController
         if (!$hangout) {
             throw $this->createNotFoundException("Hangout not found");
         }
-        if($request->isMethod('POST')) {
+        if ($request->isMethod('POST')) {
 
             if ($hangout->getStartingDateTime() < $dateNow) {
                 $this->addFlash('', "la sortie " . $hangout->getName() . " a déjà commencé, elle ne peut pas être annulée");
                 return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
             } else {
-            $cancelMotif = $request->request->get('cancelMotif', null);
-            $hangoutDetail = $hangout->getDetail();
-            $hangout->setDetail($hangoutDetail . '. Annulé : ' . $cancelMotif);
-            $hangout->setState($state);
-            $this->entityManager->persist($hangout);
-            $this->entityManager->flush();
-            $this->addFlash('success', "Sortie " . $hangout->getName() . " cancelled");
+                $cancelMotif = $request->request->get('cancelMotif', null);
+                $hangoutDetail = $hangout->getDetail();
+                $hangout->setDetail($hangoutDetail . '. Annulé : ' . $cancelMotif);
+                $hangout->setState($state);
+                $this->entityManager->persist($hangout);
+                $this->entityManager->flush();
+                $this->addFlash('success', "Sortie " . $hangout->getName() . " cancelled");
 
-            return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
+                return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
             }
         }
 
         return $this->render('hangout/cancel.html.twig', [
-            'hangout'=> $hangout
+            'hangout' => $hangout
         ]);
 
     }

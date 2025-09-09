@@ -128,6 +128,4 @@ class HangoutRepository extends ServiceEntityRepository
         // Retourne un Paginator avec gestion correcte des doublons (deuxième param à true)
         return new Paginator($query, true);
     }
-
-
 }

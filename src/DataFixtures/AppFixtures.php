@@ -66,6 +66,7 @@ class AppFixtures extends Fixture
             ->setRoles(['ROLE_ADMIN']);
         $manager->persist($admin);
 
+
         for ($i = 0; $i < 10; $i++) {
             $fakeUser = new User();
             $fakeUser->setUsername('user' . $i)
