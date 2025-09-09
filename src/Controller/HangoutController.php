@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Hangout;
 use App\Entity\Location;
+use App\Entity\State;
 use App\Entity\User;
 use App\Form\FilterHangoutType;
 use App\Form\HangoutType;
@@ -175,6 +176,34 @@ final class HangoutController extends AbstractController
         ]);
     }
 
+    #[isGranted('POST_PUBLISH', 'hangout')]
+    #[Route('/publish/{id}', name: 'publish', requirements: ['id' => '\d+'])]
+
+    public function publishHangout(Request $request, Hangout $hangout, StateRepository $stateRepository): Response
+    {
+        $hangout = $this->hangoutRepository->find($hangout->getId());
+        $state = $stateRepository->findOneBy(['label' => 'OPEN']);
+
+        if (!$hangout) {
+            throw $this->createNotFoundException("La sortie n'existe pas.");
+        }
+        if ($hangout->getState()->getLabel()==="CREATE") {
+            $hangout->setState($state);
+            $this->addFlash('success', "la sortie ".$hangout->getName()." a été publiée");
+        }
+
+        $violations = $this->validator->validate($hangout);
+        if (count($violations) > 0) {
+            foreach ($violations as $violation) {
+                $this->addFlash('danger', $violation->getMessage());
+            }
+        } else {
+            $this->entityManager->persist($hangout);
+            $this->entityManager->flush();
+        }
+        return $this->render('hangout/detail.html.twig', [$hangout->getId()]);
+    }
+
 //    #[IsGranted('POST_DELETE', 'hangout')]//c'est les acces grace au voter ca marche pour le bouton de edition
 //    #[Route('/delete/{id}', name: 'delete', requirements: ['id' => '\d+'])]
 //    public function deleteHangout(int $id): Response
@@ -205,7 +234,6 @@ final class HangoutController extends AbstractController
         $hangout = $hangoutRepository->find($id);
         $state = $stateRepository->findOneBy(['label' => 'CANCELLED']);
         $dateNow = new DateTimeImmutable();
-        dump($dateNow);
 
         if (!$hangout) {
             throw $this->createNotFoundException("Hangout not found");
