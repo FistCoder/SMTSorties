@@ -80,6 +80,7 @@ final class HangoutController extends AbstractController
 //        }
 
 
+
         return $this->render('hangout/list.html.twig', [
             'hangouts' => $hangouts,
             'filterForm' => $filterForm
