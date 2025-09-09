@@ -221,14 +221,8 @@ final class HangoutController extends AbstractController
     #[ISGranted('POST_CANCEL', 'hangout')]
     #[Route('/cancel/{id}', name: 'cancel', requirements: ['id' => '\d+'])]
     public function cancelHangout(
-<<<<<<< HEAD
-        int $id,
-        Request $request,
-        Hangout $hangout,
-=======
         int                    $id,
         Request                $request,
->>>>>>> 8dffa9b56d6881db36b2fc0d30b979d5788b8f40
         EntityManagerInterface $entityManager,
         HangoutRepository      $hangoutRepository,
         StateRepository        $stateRepository
