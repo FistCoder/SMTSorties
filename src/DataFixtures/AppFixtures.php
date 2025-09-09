@@ -66,6 +66,18 @@ class AppFixtures extends Fixture
             ->setRoles(['ROLE_ADMIN']);
         $manager->persist($admin);
 
+        $pswForgotUser = new User();
+        $pswForgotUser->setUsername('pswforgot')
+            ->setFirstname('psw')
+            ->setLastname('forgot')
+            ->setEmail('soifiaouir@gmail.com')
+            ->setPassword($this->userPasswordHasher->hashPassword($user, '1234'))
+            ->setPhone('0123456789')
+            ->setActive(true)
+            ->setCampus($faker->randomElement($campuses))
+            ->setRoles([]);
+        $manager->persist($pswForgotUser);
+
         for ($i = 0; $i < 10; $i++) {
             $fakeUser = new User();
             $fakeUser->setUsername('user' . $i)
@@ -124,7 +136,7 @@ class AppFixtures extends Fixture
 
 
 
-        for ($i = 0; $i <= 10; $i++) {
+        for ($i = 0; $i <= 30; $i++) {
             $hangout = new Hangout();
             $hangout->setName($faker->firstName.'_Hangout')
                 ->setDetail($faker->paragraph)
@@ -138,7 +150,7 @@ class AppFixtures extends Fixture
                 ->addSubscriberLst($faker->randomElement($users))
                 ->addSubscriberLst($faker->randomElement($users));
 
-            $hangout->setLastSubmitDate($faker->dateTimeBetween($hangout->getStartingDateTime(), '+1 months'));
+            $hangout->setLastSubmitDate($faker->dateTimeBetween( '-1 months', $hangout->getStartingDateTime()));
             $manager->persist($hangout);
         }
         $manager->flush();
