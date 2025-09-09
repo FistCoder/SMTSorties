@@ -66,30 +66,19 @@ class AppFixtures extends Fixture
             ->setRoles(['ROLE_ADMIN']);
         $manager->persist($admin);
 
-        $util = new User();
-        $util->setUsername('util')
-            ->setFirstname('util')
-            ->setLastname('util')
-            ->setEmail('util@util.com')
-            ->setPassword($this->userPasswordHasher->hashPassword($user, 'user'))
-            ->setPhone('0123456789')
-            ->setActive(true)
-            ->setCampus($faker->randomElement($campuses));
-         $manager->persist($admin);
 
-
-//        for ($i = 0; $i < 10; $i++) {
-//            $fakeUser = new User();
-//            $fakeUser->setUsername('user' . $i)
-//                ->setFirstname($faker->firstName)
-//                ->setLastname($faker->lastName)
-//                ->setEmail($faker->email)
-//                ->setPassword($this->userPasswordHasher->hashPassword($user, $faker->password))
-//                ->setPhone($faker->phoneNumber)
-//                ->setActive($faker->randomElement([true, false]))
-//                ->setCampus($faker->randomElement($campuses));
-//            $manager->persist($fakeUser);
-//        }
+        for ($i = 0; $i < 10; $i++) {
+            $fakeUser = new User();
+            $fakeUser->setUsername('user' . $i)
+                ->setFirstname($faker->firstName)
+                ->setLastname($faker->lastName)
+                ->setEmail($faker->email)
+                ->setPassword($this->userPasswordHasher->hashPassword($user, $faker->password))
+                ->setPhone($faker->phoneNumber)
+                ->setActive($faker->randomElement([true, false]))
+                ->setCampus($faker->randomElement($campuses));
+            $manager->persist($fakeUser);
+        }
         $manager->flush();
     }
 
@@ -136,7 +125,7 @@ class AppFixtures extends Fixture
 
 
 
-        for ($i = 0; $i <= 10; $i++) {
+        for ($i = 0; $i <= 30; $i++) {
             $hangout = new Hangout();
             $hangout->setName($faker->firstName.'_Hangout')
                 ->setDetail($faker->paragraph)
@@ -150,7 +139,7 @@ class AppFixtures extends Fixture
                 ->addSubscriberLst($faker->randomElement($users))
                 ->addSubscriberLst($faker->randomElement($users));
 
-            $hangout->setLastSubmitDate($faker->dateTimeBetween( '-1 months',$hangout->getStartingDateTime()));
+            $hangout->setLastSubmitDate($faker->dateTimeBetween( '-1 months', $hangout->getStartingDateTime()));
             $manager->persist($hangout);
         }
         $manager->flush();

@@ -26,7 +26,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use function PHPUnit\Framework\throwException;
 
 
-
 #[Route('/hangouts', name: 'hangout_')]
 final class HangoutController extends AbstractController
 {
@@ -41,8 +40,8 @@ final class HangoutController extends AbstractController
     }
 
 
-    #[Route('/', name: 'list')]
-    public function listHangouts(Request $request): Response
+    #[Route('/{page}', name: 'list', requirements: ['page' => '\d+'])]
+    public function listHangouts(Request $request, int $page = 1): Response
     {
 
         /**
@@ -58,31 +57,30 @@ final class HangoutController extends AbstractController
         }
 
 
-//creation du form - et je lui passe le model
+        //creation du form - et je lui passe le model
         $filterForm = $this->createForm(FilterHangoutType::class, $filtersModel);
         $filterForm->handleRequest($request);
 
 
-//recuperation des donées du formulaire de filtres remplis et ajout de ces données dans le tableau de filtre qui seras envoyer au repository
-        $hangouts = [];
+        $hangouts = $this->hangoutRepository->findFilteredEvent($user, $filtersModel, $page);
 
-        //if ($filterForm->isSubmitted() && $filterForm->isValid()) {
-            //$filters = $filterForm->getData();
+        //        dump($filtersModel, $hangouts, $filtersModel->getCampus());
 
-            $hangouts = $this->hangoutRepository->findFilteredEvent($user, $filtersModel);
-//            return $this->render('hangout/list.html.twig', [
-//                'hangouts' => $hangouts,
-//                'filterForm' => $filterForm
-//            ]);
-//        } else {
-//            // Par défaut (pas de filtre), recupère tout ou selon ta logique
-//            $hangouts = $this->hangoutRepository->findFilteredEvent($user, new FiltresModel());
-//        }
+        $totalHangout = $this->hangoutRepository->count();
+        $maxPages =ceil($totalHangout / Hangout::HANGOUT_PER_PAGE);
 
+        if ($page < 1) {
+            return $this->redirectToRoute('hangout_list', ['page' => 1]);
+        }
+        if ($page > $maxPages) {
+            return $this->redirectToRoute('hangout_list', ['page' => $maxPages]);
+        }
 
         return $this->render('hangout/list.html.twig', [
             'hangouts' => $hangouts,
-            'filterForm' => $filterForm
+            'filterForm' => $filterForm,
+            'currentPage' => $page,
+            'maxPages' => $maxPages,
         ]);
     }
 
@@ -146,7 +144,7 @@ final class HangoutController extends AbstractController
         ]);
     }
 
-    #[IsGranted('POST_MODIFY', 'hangout')]
+    #[IsGranted('POST_EDIT', 'hangout')]
     #[Route('/modify/{id}', name: 'modify', requirements: ['id' => '\d+'])]
     public function modifyHangout(Request $request, Hangout $hangout): Response
     {
@@ -223,48 +221,54 @@ final class HangoutController extends AbstractController
     #[ISGranted('POST_CANCEL', 'hangout')]
     #[Route('/cancel/{id}', name: 'cancel', requirements: ['id' => '\d+'])]
     public function cancelHangout(
+<<<<<<< HEAD
         int $id,
         Request $request,
         Hangout $hangout,
+=======
+        int                    $id,
+        Request                $request,
+>>>>>>> 8dffa9b56d6881db36b2fc0d30b979d5788b8f40
         EntityManagerInterface $entityManager,
-        HangoutRepository $hangoutRepository,
-        StateRepository $stateRepository
+        HangoutRepository      $hangoutRepository,
+        StateRepository        $stateRepository
     ): Response
     {
         $hangout = $hangoutRepository->find($id);
         $state = $stateRepository->findOneBy(['label' => 'CANCELLED']);
         $dateNow = new DateTimeImmutable();
+        dump($dateNow);
 
         if (!$hangout) {
             throw $this->createNotFoundException("Hangout not found");
         }
-        if($request->isMethod('POST')) {
+        if ($request->isMethod('POST')) {
 
             if ($hangout->getStartingDateTime() < $dateNow) {
                 $this->addFlash('', "la sortie " . $hangout->getName() . " a déjà commencé, elle ne peut pas être annulée");
                 return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
             } else {
-            $cancelMotif = $request->request->get('cancelMotif', null);
-            $hangoutDetail = $hangout->getDetail();
-            $hangout->setDetail($hangoutDetail . '. Annulé : ' . $cancelMotif);
-            $hangout->setState($state);
-            $this->entityManager->persist($hangout);
-            $this->entityManager->flush();
-            $this->addFlash('success', "Sortie " . $hangout->getName() . " cancelled");
+                $cancelMotif = $request->request->get('cancelMotif', null);
+                $hangoutDetail = $hangout->getDetail();
+                $hangout->setDetail($hangoutDetail . '. Annulé : ' . $cancelMotif);
+                $hangout->setState($state);
+                $this->entityManager->persist($hangout);
+                $this->entityManager->flush();
+                $this->addFlash('success', "Sortie " . $hangout->getName() . " cancelled");
 
-            return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
+                return $this->redirectToRoute('hangout_detail', ['id' => $hangout->getId()]);
             }
         }
 
         return $this->render('hangout/cancel.html.twig', [
-            'hangout'=> $hangout
+            'hangout' => $hangout
         ]);
 
     }
 
     #[isGranted('POST_SUBSCRIBER', 'hangout')]
     #[Route('/subscribe/{id}', name: 'subscribe', requirements: ['id' => '\d+'])]
-    public function subscribeToHangout(int $id, Hangout $hangout): Response
+    public function subscribeToHangout(int $id): Response
     {
         $hangout = $this->hangoutRepository->find($id);
         /**
