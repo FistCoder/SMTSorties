@@ -41,8 +41,8 @@ final class HangoutController extends AbstractController
     }
 
 
-    #[Route('/', name: 'list')]
-    public function listHangouts(Request $request): Response
+    #[Route('/{page}', name: 'list', requirements: ['page' => '\d+'])]
+    public function listHangouts(Request $request, int $page = 1): Response
     {
 
         /**
