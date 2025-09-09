@@ -2,8 +2,6 @@
 
 namespace App\Tests\Controller;
 
-use App\Controller\HangoutController;
-use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 

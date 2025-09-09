@@ -138,7 +138,7 @@ class AppFixtures extends Fixture
                 ->addSubscriberLst($faker->randomElement($users))
                 ->addSubscriberLst($faker->randomElement($users));
 
-            $hangout->setLastSubmitDate($faker->dateTimeBetween($hangout->getStartingDateTime(), '+1 months'));
+            $hangout->setLastSubmitDate($faker->dateTimeBetween( '-1 months',$hangout->getStartingDateTime()));
             $manager->persist($hangout);
         }
         $manager->flush();
