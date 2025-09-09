@@ -63,26 +63,25 @@ final class HangoutController extends AbstractController
         $filterForm->handleRequest($request);
 
 
-//recuperation des donées du formulaire de filtres remplis et ajout de ces données dans le tableau de filtre qui seras envoyer au repository
-        $hangouts = [];
+        $hangouts = $this->hangoutRepository->findFilteredEvent($user, $filtersModel, $page);
 
-        //if ($filterForm->isSubmitted() && $filterForm->isValid()) {
-            //$filters = $filterForm->getData();
+        //        dump($filtersModel, $hangouts, $filtersModel->getCampus());
 
-            $hangouts = $this->hangoutRepository->findFilteredEvent($user, $filtersModel);
-//            return $this->render('hangout/list.html.twig', [
-//                'hangouts' => $hangouts,
-//                'filterForm' => $filterForm
-//            ]);
-//        } else {
-//            // Par défaut (pas de filtre), recupère tout ou selon ta logique
-//            $hangouts = $this->hangoutRepository->findFilteredEvent($user, new FiltresModel());
-//        }
+        $totalHangout = $this->hangoutRepository->count();
+        $maxPages =ceil($totalHangout / Hangout::HANGOUT_PER_PAGE);
 
+        if ($page < 1) {
+            return $this->redirectToRoute('hangout_list', ['page' => 1]);
+        }
+        if ($page > $maxPages) {
+            return $this->redirectToRoute('hangout_list', ['page' => $maxPages]);
+        }
 
         return $this->render('hangout/list.html.twig', [
             'hangouts' => $hangouts,
-            'filterForm' => $filterForm
+            'filterForm' => $filterForm,
+            'currentPage' => $page,
+            'maxPages' => $maxPages,
         ]);
     }
 
@@ -146,7 +145,7 @@ final class HangoutController extends AbstractController
         ]);
     }
 
-    #[IsGranted('POST_MODIFY', 'hangout')]
+    #[IsGranted('POST_EDIT', 'hangout')]
     #[Route('/modify/{id}', name: 'modify', requirements: ['id' => '\d+'])]
     public function modifyHangout(Request $request, Hangout $hangout): Response
     {
@@ -234,6 +233,7 @@ final class HangoutController extends AbstractController
         $hangout = $hangoutRepository->find($id);
         $state = $stateRepository->findOneBy(['label' => 'CANCELLED']);
         $dateNow = new DateTimeImmutable();
+        dump($dateNow);
 
         if (!$hangout) {
             throw $this->createNotFoundException("Hangout not found");
@@ -264,7 +264,7 @@ final class HangoutController extends AbstractController
 
     #[isGranted('POST_SUBSCRIBER', 'hangout')]
     #[Route('/subscribe/{id}', name: 'subscribe', requirements: ['id' => '\d+'])]
-    public function subscribeToHangout(int $id, Hangout $hangout): Response
+    public function subscribeToHangout(int $id): Response
     {
         $hangout = $this->hangoutRepository->find($id);
         /**
